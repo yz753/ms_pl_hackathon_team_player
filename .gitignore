@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+runs/
+validation/
+
+.venv/
+private/
+deploy/*.zip
+.env

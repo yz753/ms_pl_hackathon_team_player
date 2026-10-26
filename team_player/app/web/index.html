@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Team Player · Live match</title>
+<style>
+body{background:#101a22;color:#e7eff5;font:15px system-ui,sans-serif;margin:0}
+header{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid #2b4248}
+h1{margin:0;font-size:24px}h1 span{color:#f3cc80}.sub{color:#9eb7bc;font-size:13px}
+main{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(330px,1fr);gap:20px;padding:20px 24px;max-width:1500px;margin:auto}
+canvas{width:100%;background:#1f654d;border-radius:12px;display:block}
+aside{background:#172733;border-radius:12px;padding:18px;align-self:start}
+select,button{font:inherit;padding:8px 10px;border-radius:7px;border:1px solid #3a5157;background:#183138;color:#e7eff5}
+button{cursor:pointer}button:disabled{opacity:.5;cursor:default}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:12px 0}
+.scoreline{display:flex;justify-content:space-between;color:#b9cbd6;font-size:14px;margin-top:8px}
+.kicker{color:#83e2bd;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin:16px 0 6px}
+.player{font-size:26px;margin:6px 0}.badge{display:inline-block;border:1px solid #446259;color:#83e2bd;font-size:11px;padding:3px 8px;border-radius:20px}
+.narrative{line-height:1.55;background:#10202a;border-left:3px solid #f3cc80;padding:10px 12px;border-radius:4px 8px 8px 4px}
+.numbers{font-size:14px;line-height:1.6;color:#cfe0e6}.numbers div{border-bottom:1px solid #26404a;padding:4px 0}
+.numbers strong{color:#f3cc80}.verdict{border-top:1px solid #2b4248;padding:8px 0;font-size:14px}
+.verdict b{color:#83e2bd}.verdict.flag b{color:#f3cc80}.muted{color:#9eb7bc;font-size:13px}
+a.q{display:inline-block;width:15px;height:15px;line-height:15px;text-align:center;border-radius:50%;background:#2c4a55;color:#f3cc80;
+  font-size:10px;text-decoration:none;margin-left:2px;vertical-align:super}
+a.q:hover{background:#f3cc80;color:#101a22}
+.todo{background:#10202a;border:1px dashed #446259;border-radius:8px;padding:12px;line-height:1.55}
+table{width:100%;font-size:13px;border-collapse:collapse}td,th{padding:4px;border-bottom:1px solid #26404a;text-align:left}
+details{margin-top:12px}summary{cursor:pointer;color:#83e2bd}.log{font:12px ui-monospace,monospace;color:#a8c7c2;line-height:1.6}
+@media(max-width:950px){main{grid-template-columns:1fr}}
+</style>
+<header><div><h1>Team Player<span>.</span></h1><div class="sub">The contribution behind the moment · synthetic league, streamed as if live</div></div>
+<div><label class="sub">Match <select id="match"></select></label> <span class="badge" id="backend">connecting…</span></div></header>
+<main><section>
+<canvas id="pitch" width="1050" height="680" aria-label="Pitch with all players and the ball"></canvas>
+<div class="scoreline"><span id="teams"></span><span id="phase">Waiting for tracking</span><strong id="clock">00:00</strong></div>
+<div class="controls"><button id="pause">Pause</button><label class="sub">Speed <select id="speed"><option value="1">1× live</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×</option></select></label>
+<span class="muted" id="processing"></span></div>
+<div class="log" id="events"></div>
+<p class="muted">Positions are the only match input; possession, passes, shots and goals are inferred frame by frame. No future frames are used. Click a player on the pitch to follow him.</p>
+</section>
+<aside>
+<div class="kicker">Follow a player</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><select id="player"></select><button id="h2h" title="Compare this player with any player in the league">Head-to-head ↗</button></div>
+<div class="player" id="playerTitle">—</div><span class="badge" id="role"></span>
+<div id="todo" class="todo" hidden></div>
+<div id="analysis">
+<div class="kicker">What is happening</div>
+<div class="narrative" id="narrative">Watching. A story appears when the player's movement changes the attack.</div>
+<div class="muted" id="agentStatus"></div>
+<div class="kicker">The numbers</div>
+<div class="numbers" id="numbers"></div>
+<div class="kicker">Benefit versus cost</div>
+<div id="verdicts" class="muted">No completed episode yet.</div>
+<div class="kicker">Similar situation in history</div>
+<div class="narrative" id="story">Waiting for the first comparable moment.</div>
+<div id="similarTable"></div>
+<button id="similarAsk" style="margin-top:8px">Ask the AI to explain the comparison</button>
+<div class="muted" id="similarSummary"></div>
+<details><summary>How this was checked</summary><div class="log" id="trace">No AI review yet.</div></details>
+</div>
+</aside></main>
+<script>
+const $=id=>document.getElementById(id),C=$('pitch'),ctx=C.getContext('2d');
+let meta=null,frame=null,lookup={},prefs={player:null},paused=false,trail=[],events=[],terms=[],ws=null,lastTick=null;
+const channel=('BroadcastChannel' in window)?new BroadcastChannel('team-player'):null;
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function gloss(text){ // add a "?" link after the first mention of each football term
+  let out=esc(text);const used=new Set();
+  for(const term of terms){const re=new RegExp(`(^|[^A-Za-z])(${term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})(?![A-Za-z])`);
+    if(!used.has(term)&&re.test(out)){out=out.replace(re,(m,a,b)=>`${a}${b}<a class="q" href="/glossary#${encodeURIComponent(term)}" target="_blank" title="What is ${esc(term)}?">?</a>`);used.add(term)}}
+  return out}
+function html(id,v){$(id).innerHTML=v}function text(id,v){$(id).textContent=v}
+function opt(v,l){const o=document.createElement('option');o.value=v;o.textContent=l;return o}
+const ROLE={ST:'striker',LB:'left-back',RB:'right-back',LW:'left winger',RW:'right winger',GK:'goalkeeper',LCB:'centre-back',RCB:'centre-back',LDM:'defensive midfielder',RDM:'defensive midfielder',CAM:'attacking midfielder',DM:'defensive midfielder',LCM:'central midfielder',RCM:'central midfielder',LM:'left midfielder',RM:'right midfielder',LST:'striker',RST:'striker'};
+const SUPPORTED=new Set(['ST','LST','RST','LW','RW','LM','RM','LB','RB']);
+// ---------------------------------------------------------------- pitch ---
+function line(x,y,u,v,c){ctx.strokeStyle=c;ctx.beginPath();ctx.moveTo(x*10,y*10);ctx.lineTo(u*10,v*10);ctx.stroke()}
+function dot(x,y,r,c){ctx.fillStyle=c;ctx.beginPath();ctx.arc(x*10,y*10,r*10,0,Math.PI*2);ctx.fill()}
+function draw(){if(!frame||!meta)return;ctx.clearRect(0,0,1050,680);ctx.lineWidth=2;ctx.strokeStyle='#bbd8c5';ctx.strokeRect(2,2,1046,676);
+ line(52.5,0,52.5,68,'#bbd8c5');ctx.beginPath();ctx.arc(525,340,91.5,0,Math.PI*2);ctx.stroke();ctx.strokeRect(0,138.5,165,403);ctx.strokeRect(885,138.5,165,403);ctx.strokeRect(0,248.4,55,183.2);ctx.strokeRect(995,248.4,55,183.2);
+ ctx.lineWidth=3;for(let i=1;i<trail.length;i++)line(trail[i-1].x,trail[i-1].y,trail[i].x,trail[i].y,'rgba(243,204,128,.45)');
+ for(const p of frame.players){const sel=p.id===prefs.player;dot(p.x,p.y,.65,lookup[p.id].team===meta.teams[0].id?'#63bcff':'#ff8d80');
+  if(sel){ctx.strokeStyle='#f3cc80';ctx.lineWidth=3;ctx.beginPath();ctx.arc(p.x*10,p.y*10,20,0,Math.PI*2);ctx.stroke()}
+  ctx.font=sel?'bold 13px system-ui':'11px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#16392e';ctx.fillStyle=sel?'#ffe7a5':'#fff';
+  const l=`${p.id} · ${lookup[p.id].role}`;ctx.strokeText(l,p.x*10,p.y*10-12);ctx.fillText(l,p.x*10,p.y*10-12)}
+ dot(frame.ball.x,frame.ball.y,.42,'#fff')}
+C.onclick=e=>{if(!frame)return;const r=C.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*105,y=(e.clientY-r.top)/r.height*68;
+ const p=frame.players.reduce((a,b)=>Math.hypot(b.x-x,b.y-y)<Math.hypot(a.x-x,a.y-y)?b:a);if(Math.hypot(p.x-x,p.y-y)<4){$('player').value=p.id;choose()}};
+// --------------------------------------------------------------- panel ---
+function choose(){prefs.player=$('player').value;trail=[];ws.send(JSON.stringify({type:'preferences',player:prefs.player}));renderPlayer()}
+function renderPlayer(){const p=lookup[prefs.player];if(!p)return;text('playerTitle',`${p.id} · Team ${p.team}`);text('role',(ROLE[p.role]||p.role).toUpperCase());
+ const ok=SUPPORTED.has(p.role);$('todo').hidden=ok;$('analysis').hidden=!ok;$('h2h').disabled=!ok;
+ if(!ok)html('todo',`<b>${esc(ROLE[p.role]||p.role)} analysis: to be developed…</b><br><br>Team Player currently explains the three roles whose movement without the ball we model and value: <b>strikers</b> who drop deep to link play, <b>fullbacks</b> who push forward as an extra winger, and <b>wingers</b> who make decoy runs to pull defenders away. A ${esc(ROLE[p.role]||p.role)} has a different job, so it needs its own measures before we can say anything fair about it: for example how a centre-back steps out to press, how a midfielder screens passing lanes, or how a goalkeeper starts attacks. Those measures, and the history comparisons that go with them, are planned for a later version. Until then, pick a striker, fullback or winger from either team to see live explanations, the numbers behind them and similar moments from past seasons.`)}
+function numbersFor(row,overlay){const out=[];
+ const card=overlay?.cards?.[0];if(card?.numbers)out.push(`<div>${gloss(card.numbers)}</div>`);
+ if(row&&row.possession_s>0){const per=v=>(600*v/row.possession_s);
+  out.push(`<div>Own value so far: <strong>${(row.indiv_net||0).toFixed(3)}</strong> xG (${per(row.indiv_net||0).toFixed(3)} per 10 min of team possession)</div>`);
+  out.push(`<div>Team outcome while he did it: <strong>${(row.value_net||0).toFixed(3)}</strong> xG, shared with team-mates</div>`);
+  const r=lookup[prefs.player].role;const ev=r.includes('ST')?`${row.drop_n} drop(s), ${row.drop_link_n} forward link pass(es), absent from the box at ${row.drop_box_absent_n} of ${row.drop_delivery_n} deliveries`:
+   (r==='LB'||r==='RB')?`${row.fb_n} advance(s), ${row.fb_ft_receptions} final third reception(s), ball lost ${row.fb_turnover_n} time(s) while advanced (counter xG ${(row.fb_counter_xg||0).toFixed(2)})`:
+   `${row.run_n} run(s), ${row.decoy_n} decoy run(s) drawing ${row.decoy_drawn} defender(s)`;
+  out.push(`<div>${gloss(ev)}</div>`)}
+ html('numbers',out.join('')||'<span class="muted">No measured contribution yet.</span>')}
+function renderSimilar(s,review,story){if(story)html('story',gloss(story.text));else if(s&&s.available===false)text('story',s.warnings[0]);
+ if(!s||!s.available)return;const rows=Object.values(s.by_choice).map(v=>`<tr><td>${esc(v.label)}</td><td>${v.yes.n} · ${v.yes.xg===null?'–':v.yes.xg.toFixed(3)}</td><td>${v.no.n} · ${v.no.xg===null?'–':v.no.xg.toFixed(3)}</td></tr>`);
+ html('similarTable',`<table><tr><th>${s.k} closest of ${s.pool_size} history moments</th><th>did it: n · xG<a class="q" href="/glossary#xG" target="_blank">?</a></th><th>did not</th></tr>${rows.join('')}</table>`);
+ if(review?.summary)html('similarSummary',gloss(review.summary.text)+(review.method==='microsoft_foundry_agent'?' · AI-reviewed':''))}
+function update(p){lastTick=p;frame=p.frame;const me=frame.players.find(x=>x.id===prefs.player);if(me){trail.push({...me,t:frame.t});trail=trail.filter(x=>x.t>frame.t-4)}draw();
+ text('clock',`${String(Math.floor(frame.t/60)).padStart(2,'0')}:${String(Math.floor(frame.t%60)).padStart(2,'0')}`);
+ const g=p.possession;text('phase',g.status==='sustained'?`Team ${g.team} in possession`:g.status==='developing'?`Team ${g.team} building possession`:'Unsettled play');
+ text('processing',`${p.processing_ms.toFixed(1)} ms analysis per frame`);
+ const sc=p.tactics?.score;if(sc)text('teams',meta.teams.map(t=>`Team ${t.id} ${sc[t.id]??0}`).join(' – '));
+ const ov=p.overlay,card=ov?.cards?.[0];
+ if(card)html('narrative',`<b>${esc(card.title)}.</b> ${gloss(ov.narrative?.text||card.body)}<br><span class="muted">${gloss(card.caveat)}</span>`);
+ text('agentStatus',p.agent_status);html('trace',(ov?.trace||[]).map(s=>esc(`${s.stage}: ${s.tool||s.status}`)).join('<br>')||'No AI review yet.');
+ numbersFor(p.player_live,ov);if(p.defence)$('numbers').insertAdjacentHTML('afterbegin',`<div><b>Without the ball:</b> ${gloss(p.defence.text)}</div>`);if(p.balance)$('numbers').insertAdjacentHTML('afterbegin',`<div><b>${p.defence?'With the ball':'Him and the team'}:</b> ${gloss(p.balance.text)}</div>`);
+ html('verdicts',(p.verdicts||[]).map(v=>`<div class="verdict ${v.flag?'flag':''}"><b>${v.t.toFixed(0)} s · ${esc(v.kind.replaceAll('_',' '))}</b><br>+ ${gloss(v.benefit)}<br>− ${gloss(v.cost)}<br>${gloss(v.outcome)}</div>`).join('')||'No completed episode yet.');
+ if('similar' in p)renderSimilar(p.similar,p.similar_review,p.story);
+ for(const e of frame.events)events.push(`${frame.t.toFixed(1)}s · ${e.type.replaceAll('_',' ')} · ${e.player||e.team||''}`);events=events.slice(-5);html('events',events.map(esc).join('<br>'));
+ if(channel)channel.postMessage({type:'tick',t:frame.t,comparison:p.comparison,consultant:p.consultant,pending:p.comparison_pending,match_rows:p.match_rows,
+   players:meta.players,teams:meta.teams.map(t=>t.id),season:meta.season,matchweek:meta.matchweek,file:currentFile})}
+// --------------------------------------------------------------- wiring ---
+let currentFile=null;
+function connect(file){if(ws)ws.close();const q=new URLSearchParams();if(file)q.set('match',file);
+ ws=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws?${q}`);
+ ws.onmessage=ev=>{const p=JSON.parse(ev.data);
+  if(p.kind==='metadata'){meta=p.metadata;currentFile=p.file;terms=(p.glossary_terms||[]).sort((a,b)=>b.length-a.length);lookup=Object.fromEntries(meta.players.map(x=>[x.id,x]));prefs=p.preferences;
+   const sel=$('player');sel.replaceChildren();for(const t of meta.teams){const g=document.createElement('optgroup');g.label=`Team ${t.id}`;for(const x of meta.players.filter(x=>x.team===t.id))g.append(opt(x.id,`${x.id} · ${ROLE[x.role]||x.role}`));sel.append(g)}
+   sel.value=prefs.player;renderPlayer();text('backend',p.ai_backend==='foundry'?'Microsoft Foundry agents':'Local rules · AI not connected');
+   text('teams',`${meta.season||''} ${meta.matchweek?'· MW'+meta.matchweek:''} · Team ${meta.teams[0].id} v Team ${meta.teams[1].id}`)}
+  else if(p.kind==='tick')update(p);else if(p.kind==='end'||p.kind==='error')text('phase',p.message)};}
+$('player').onchange=choose;
+$('pause').onclick=()=>{paused=!paused;text('pause',paused?'Resume':'Pause');ws.send(JSON.stringify({type:'playback',paused,speed:Number($('speed').value)}))};
+$('speed').onchange=()=>ws.send(JSON.stringify({type:'playback',paused,speed:Number($('speed').value)}));
+$('similarAsk').onclick=()=>ws.send(JSON.stringify({type:'similar_review'}));
+$('h2h').onclick=()=>window.open(`/compare?left=${encodeURIComponent(prefs.player)}`,'team-player-h2h');
+if(channel)channel.onmessage=ev=>{const m=ev.data;if(m.type==='request'&&ws)ws.send(JSON.stringify({type:'comparison',left:m.left,right:m.right,review:!!m.review}))};
+fetch('/api/matches').then(r=>r.json()).then(d=>{const s=$('match');for(const m of d.matches)s.append(opt(m.file,`${d.season} · ${m.label}`));
+ if(!d.matches.length)s.append(opt('','Configured recording'));s.onchange=()=>connect(s.value);connect(d.matches[0]?.file||null)}).catch(()=>connect(null));
+</script></html>

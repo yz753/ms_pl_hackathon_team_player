@@ -1,0 +1,6 @@
+# Only the package and the worker requirements are sent to the cloud build.
+*
+!team_player/
+!deploy/worker/
+**/__pycache__
+**/.DS_Store

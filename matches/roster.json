@@ -1,0 +1,1105 @@
+{
+  "league_seed": 2026,
+  "players": [
+    {
+      "id": "A01",
+      "team": "A",
+      "role": "GK"
+    },
+    {
+      "id": "A03",
+      "team": "A",
+      "role": "LB"
+    },
+    {
+      "id": "A05",
+      "team": "A",
+      "role": "LCB"
+    },
+    {
+      "id": "A04",
+      "team": "A",
+      "role": "RCB"
+    },
+    {
+      "id": "A02",
+      "team": "A",
+      "role": "RB"
+    },
+    {
+      "id": "A06",
+      "team": "A",
+      "role": "LDM"
+    },
+    {
+      "id": "A08",
+      "team": "A",
+      "role": "RDM"
+    },
+    {
+      "id": "A11",
+      "team": "A",
+      "role": "LW"
+    },
+    {
+      "id": "A10",
+      "team": "A",
+      "role": "CAM"
+    },
+    {
+      "id": "A07",
+      "team": "A",
+      "role": "RW"
+    },
+    {
+      "id": "A09",
+      "team": "A",
+      "role": "ST"
+    },
+    {
+      "id": "B01",
+      "team": "B",
+      "role": "GK"
+    },
+    {
+      "id": "B03",
+      "team": "B",
+      "role": "LB"
+    },
+    {
+      "id": "B05",
+      "team": "B",
+      "role": "LCB"
+    },
+    {
+      "id": "B04",
+      "team": "B",
+      "role": "RCB"
+    },
+    {
+      "id": "B02",
+      "team": "B",
+      "role": "RB"
+    },
+    {
+      "id": "B06",
+      "team": "B",
+      "role": "LDM"
+    },
+    {
+      "id": "B08",
+      "team": "B",
+      "role": "RDM"
+    },
+    {
+      "id": "B11",
+      "team": "B",
+      "role": "LW"
+    },
+    {
+      "id": "B10",
+      "team": "B",
+      "role": "CAM"
+    },
+    {
+      "id": "B07",
+      "team": "B",
+      "role": "RW"
+    },
+    {
+      "id": "B09",
+      "team": "B",
+      "role": "ST"
+    },
+    {
+      "id": "C01",
+      "team": "C",
+      "role": "GK"
+    },
+    {
+      "id": "C03",
+      "team": "C",
+      "role": "LB"
+    },
+    {
+      "id": "C05",
+      "team": "C",
+      "role": "LCB"
+    },
+    {
+      "id": "C04",
+      "team": "C",
+      "role": "RCB"
+    },
+    {
+      "id": "C02",
+      "team": "C",
+      "role": "RB"
+    },
+    {
+      "id": "C06",
+      "team": "C",
+      "role": "LDM"
+    },
+    {
+      "id": "C08",
+      "team": "C",
+      "role": "RDM"
+    },
+    {
+      "id": "C11",
+      "team": "C",
+      "role": "LW"
+    },
+    {
+      "id": "C10",
+      "team": "C",
+      "role": "CAM"
+    },
+    {
+      "id": "C07",
+      "team": "C",
+      "role": "RW"
+    },
+    {
+      "id": "C09",
+      "team": "C",
+      "role": "ST"
+    },
+    {
+      "id": "D01",
+      "team": "D",
+      "role": "GK"
+    },
+    {
+      "id": "D03",
+      "team": "D",
+      "role": "LB"
+    },
+    {
+      "id": "D05",
+      "team": "D",
+      "role": "LCB"
+    },
+    {
+      "id": "D04",
+      "team": "D",
+      "role": "RCB"
+    },
+    {
+      "id": "D02",
+      "team": "D",
+      "role": "RB"
+    },
+    {
+      "id": "D06",
+      "team": "D",
+      "role": "LDM"
+    },
+    {
+      "id": "D08",
+      "team": "D",
+      "role": "RDM"
+    },
+    {
+      "id": "D11",
+      "team": "D",
+      "role": "LW"
+    },
+    {
+      "id": "D10",
+      "team": "D",
+      "role": "CAM"
+    },
+    {
+      "id": "D07",
+      "team": "D",
+      "role": "RW"
+    },
+    {
+      "id": "D09",
+      "team": "D",
+      "role": "ST"
+    },
+    {
+      "id": "E01",
+      "team": "E",
+      "role": "GK"
+    },
+    {
+      "id": "E03",
+      "team": "E",
+      "role": "LB"
+    },
+    {
+      "id": "E05",
+      "team": "E",
+      "role": "LCB"
+    },
+    {
+      "id": "E04",
+      "team": "E",
+      "role": "RCB"
+    },
+    {
+      "id": "E02",
+      "team": "E",
+      "role": "RB"
+    },
+    {
+      "id": "E06",
+      "team": "E",
+      "role": "LDM"
+    },
+    {
+      "id": "E08",
+      "team": "E",
+      "role": "RDM"
+    },
+    {
+      "id": "E11",
+      "team": "E",
+      "role": "LW"
+    },
+    {
+      "id": "E10",
+      "team": "E",
+      "role": "CAM"
+    },
+    {
+      "id": "E07",
+      "team": "E",
+      "role": "RW"
+    },
+    {
+      "id": "E09",
+      "team": "E",
+      "role": "ST"
+    },
+    {
+      "id": "F01",
+      "team": "F",
+      "role": "GK"
+    },
+    {
+      "id": "F03",
+      "team": "F",
+      "role": "LB"
+    },
+    {
+      "id": "F05",
+      "team": "F",
+      "role": "LCB"
+    },
+    {
+      "id": "F04",
+      "team": "F",
+      "role": "RCB"
+    },
+    {
+      "id": "F02",
+      "team": "F",
+      "role": "RB"
+    },
+    {
+      "id": "F06",
+      "team": "F",
+      "role": "LDM"
+    },
+    {
+      "id": "F08",
+      "team": "F",
+      "role": "RDM"
+    },
+    {
+      "id": "F11",
+      "team": "F",
+      "role": "LW"
+    },
+    {
+      "id": "F10",
+      "team": "F",
+      "role": "CAM"
+    },
+    {
+      "id": "F07",
+      "team": "F",
+      "role": "RW"
+    },
+    {
+      "id": "F09",
+      "team": "F",
+      "role": "ST"
+    },
+    {
+      "id": "G01",
+      "team": "G",
+      "role": "GK"
+    },
+    {
+      "id": "G03",
+      "team": "G",
+      "role": "LB"
+    },
+    {
+      "id": "G05",
+      "team": "G",
+      "role": "LCB"
+    },
+    {
+      "id": "G04",
+      "team": "G",
+      "role": "RCB"
+    },
+    {
+      "id": "G02",
+      "team": "G",
+      "role": "RB"
+    },
+    {
+      "id": "G06",
+      "team": "G",
+      "role": "LDM"
+    },
+    {
+      "id": "G08",
+      "team": "G",
+      "role": "RDM"
+    },
+    {
+      "id": "G11",
+      "team": "G",
+      "role": "LW"
+    },
+    {
+      "id": "G10",
+      "team": "G",
+      "role": "CAM"
+    },
+    {
+      "id": "G07",
+      "team": "G",
+      "role": "RW"
+    },
+    {
+      "id": "G09",
+      "team": "G",
+      "role": "ST"
+    },
+    {
+      "id": "H01",
+      "team": "H",
+      "role": "GK"
+    },
+    {
+      "id": "H03",
+      "team": "H",
+      "role": "LB"
+    },
+    {
+      "id": "H05",
+      "team": "H",
+      "role": "LCB"
+    },
+    {
+      "id": "H04",
+      "team": "H",
+      "role": "RCB"
+    },
+    {
+      "id": "H02",
+      "team": "H",
+      "role": "RB"
+    },
+    {
+      "id": "H06",
+      "team": "H",
+      "role": "LDM"
+    },
+    {
+      "id": "H08",
+      "team": "H",
+      "role": "RDM"
+    },
+    {
+      "id": "H11",
+      "team": "H",
+      "role": "LW"
+    },
+    {
+      "id": "H10",
+      "team": "H",
+      "role": "CAM"
+    },
+    {
+      "id": "H07",
+      "team": "H",
+      "role": "RW"
+    },
+    {
+      "id": "H09",
+      "team": "H",
+      "role": "ST"
+    },
+    {
+      "id": "I01",
+      "team": "I",
+      "role": "GK"
+    },
+    {
+      "id": "I03",
+      "team": "I",
+      "role": "LB"
+    },
+    {
+      "id": "I05",
+      "team": "I",
+      "role": "LCB"
+    },
+    {
+      "id": "I04",
+      "team": "I",
+      "role": "RCB"
+    },
+    {
+      "id": "I02",
+      "team": "I",
+      "role": "RB"
+    },
+    {
+      "id": "I06",
+      "team": "I",
+      "role": "LDM"
+    },
+    {
+      "id": "I08",
+      "team": "I",
+      "role": "RDM"
+    },
+    {
+      "id": "I11",
+      "team": "I",
+      "role": "LW"
+    },
+    {
+      "id": "I10",
+      "team": "I",
+      "role": "CAM"
+    },
+    {
+      "id": "I07",
+      "team": "I",
+      "role": "RW"
+    },
+    {
+      "id": "I09",
+      "team": "I",
+      "role": "ST"
+    },
+    {
+      "id": "J01",
+      "team": "J",
+      "role": "GK"
+    },
+    {
+      "id": "J03",
+      "team": "J",
+      "role": "LB"
+    },
+    {
+      "id": "J05",
+      "team": "J",
+      "role": "LCB"
+    },
+    {
+      "id": "J04",
+      "team": "J",
+      "role": "RCB"
+    },
+    {
+      "id": "J02",
+      "team": "J",
+      "role": "RB"
+    },
+    {
+      "id": "J06",
+      "team": "J",
+      "role": "LDM"
+    },
+    {
+      "id": "J08",
+      "team": "J",
+      "role": "RDM"
+    },
+    {
+      "id": "J11",
+      "team": "J",
+      "role": "LW"
+    },
+    {
+      "id": "J10",
+      "team": "J",
+      "role": "CAM"
+    },
+    {
+      "id": "J07",
+      "team": "J",
+      "role": "RW"
+    },
+    {
+      "id": "J09",
+      "team": "J",
+      "role": "ST"
+    },
+    {
+      "id": "K01",
+      "team": "K",
+      "role": "GK"
+    },
+    {
+      "id": "K03",
+      "team": "K",
+      "role": "LB"
+    },
+    {
+      "id": "K05",
+      "team": "K",
+      "role": "LCB"
+    },
+    {
+      "id": "K04",
+      "team": "K",
+      "role": "RCB"
+    },
+    {
+      "id": "K02",
+      "team": "K",
+      "role": "RB"
+    },
+    {
+      "id": "K06",
+      "team": "K",
+      "role": "LDM"
+    },
+    {
+      "id": "K08",
+      "team": "K",
+      "role": "RDM"
+    },
+    {
+      "id": "K11",
+      "team": "K",
+      "role": "LW"
+    },
+    {
+      "id": "K10",
+      "team": "K",
+      "role": "CAM"
+    },
+    {
+      "id": "K07",
+      "team": "K",
+      "role": "RW"
+    },
+    {
+      "id": "K09",
+      "team": "K",
+      "role": "ST"
+    },
+    {
+      "id": "L01",
+      "team": "L",
+      "role": "GK"
+    },
+    {
+      "id": "L03",
+      "team": "L",
+      "role": "LB"
+    },
+    {
+      "id": "L05",
+      "team": "L",
+      "role": "LCB"
+    },
+    {
+      "id": "L04",
+      "team": "L",
+      "role": "RCB"
+    },
+    {
+      "id": "L02",
+      "team": "L",
+      "role": "RB"
+    },
+    {
+      "id": "L06",
+      "team": "L",
+      "role": "LDM"
+    },
+    {
+      "id": "L08",
+      "team": "L",
+      "role": "RDM"
+    },
+    {
+      "id": "L11",
+      "team": "L",
+      "role": "LW"
+    },
+    {
+      "id": "L10",
+      "team": "L",
+      "role": "CAM"
+    },
+    {
+      "id": "L07",
+      "team": "L",
+      "role": "RW"
+    },
+    {
+      "id": "L09",
+      "team": "L",
+      "role": "ST"
+    },
+    {
+      "id": "M01",
+      "team": "M",
+      "role": "GK"
+    },
+    {
+      "id": "M03",
+      "team": "M",
+      "role": "LB"
+    },
+    {
+      "id": "M05",
+      "team": "M",
+      "role": "LCB"
+    },
+    {
+      "id": "M04",
+      "team": "M",
+      "role": "RCB"
+    },
+    {
+      "id": "M02",
+      "team": "M",
+      "role": "RB"
+    },
+    {
+      "id": "M06",
+      "team": "M",
+      "role": "LDM"
+    },
+    {
+      "id": "M08",
+      "team": "M",
+      "role": "RDM"
+    },
+    {
+      "id": "M11",
+      "team": "M",
+      "role": "LW"
+    },
+    {
+      "id": "M10",
+      "team": "M",
+      "role": "CAM"
+    },
+    {
+      "id": "M07",
+      "team": "M",
+      "role": "RW"
+    },
+    {
+      "id": "M09",
+      "team": "M",
+      "role": "ST"
+    },
+    {
+      "id": "N01",
+      "team": "N",
+      "role": "GK"
+    },
+    {
+      "id": "N03",
+      "team": "N",
+      "role": "LB"
+    },
+    {
+      "id": "N05",
+      "team": "N",
+      "role": "LCB"
+    },
+    {
+      "id": "N04",
+      "team": "N",
+      "role": "RCB"
+    },
+    {
+      "id": "N02",
+      "team": "N",
+      "role": "RB"
+    },
+    {
+      "id": "N06",
+      "team": "N",
+      "role": "LDM"
+    },
+    {
+      "id": "N08",
+      "team": "N",
+      "role": "RDM"
+    },
+    {
+      "id": "N11",
+      "team": "N",
+      "role": "LW"
+    },
+    {
+      "id": "N10",
+      "team": "N",
+      "role": "CAM"
+    },
+    {
+      "id": "N07",
+      "team": "N",
+      "role": "RW"
+    },
+    {
+      "id": "N09",
+      "team": "N",
+      "role": "ST"
+    },
+    {
+      "id": "O01",
+      "team": "O",
+      "role": "GK"
+    },
+    {
+      "id": "O03",
+      "team": "O",
+      "role": "LB"
+    },
+    {
+      "id": "O05",
+      "team": "O",
+      "role": "LCB"
+    },
+    {
+      "id": "O04",
+      "team": "O",
+      "role": "RCB"
+    },
+    {
+      "id": "O02",
+      "team": "O",
+      "role": "RB"
+    },
+    {
+      "id": "O06",
+      "team": "O",
+      "role": "LDM"
+    },
+    {
+      "id": "O08",
+      "team": "O",
+      "role": "RDM"
+    },
+    {
+      "id": "O11",
+      "team": "O",
+      "role": "LW"
+    },
+    {
+      "id": "O10",
+      "team": "O",
+      "role": "CAM"
+    },
+    {
+      "id": "O07",
+      "team": "O",
+      "role": "RW"
+    },
+    {
+      "id": "O09",
+      "team": "O",
+      "role": "ST"
+    },
+    {
+      "id": "P01",
+      "team": "P",
+      "role": "GK"
+    },
+    {
+      "id": "P03",
+      "team": "P",
+      "role": "LB"
+    },
+    {
+      "id": "P05",
+      "team": "P",
+      "role": "LCB"
+    },
+    {
+      "id": "P04",
+      "team": "P",
+      "role": "RCB"
+    },
+    {
+      "id": "P02",
+      "team": "P",
+      "role": "RB"
+    },
+    {
+      "id": "P06",
+      "team": "P",
+      "role": "LDM"
+    },
+    {
+      "id": "P08",
+      "team": "P",
+      "role": "RDM"
+    },
+    {
+      "id": "P11",
+      "team": "P",
+      "role": "LW"
+    },
+    {
+      "id": "P10",
+      "team": "P",
+      "role": "CAM"
+    },
+    {
+      "id": "P07",
+      "team": "P",
+      "role": "RW"
+    },
+    {
+      "id": "P09",
+      "team": "P",
+      "role": "ST"
+    },
+    {
+      "id": "Q01",
+      "team": "Q",
+      "role": "GK"
+    },
+    {
+      "id": "Q03",
+      "team": "Q",
+      "role": "LB"
+    },
+    {
+      "id": "Q05",
+      "team": "Q",
+      "role": "LCB"
+    },
+    {
+      "id": "Q04",
+      "team": "Q",
+      "role": "RCB"
+    },
+    {
+      "id": "Q02",
+      "team": "Q",
+      "role": "RB"
+    },
+    {
+      "id": "Q06",
+      "team": "Q",
+      "role": "LDM"
+    },
+    {
+      "id": "Q08",
+      "team": "Q",
+      "role": "RDM"
+    },
+    {
+      "id": "Q11",
+      "team": "Q",
+      "role": "LW"
+    },
+    {
+      "id": "Q10",
+      "team": "Q",
+      "role": "CAM"
+    },
+    {
+      "id": "Q07",
+      "team": "Q",
+      "role": "RW"
+    },
+    {
+      "id": "Q09",
+      "team": "Q",
+      "role": "ST"
+    },
+    {
+      "id": "R01",
+      "team": "R",
+      "role": "GK"
+    },
+    {
+      "id": "R03",
+      "team": "R",
+      "role": "LB"
+    },
+    {
+      "id": "R05",
+      "team": "R",
+      "role": "LCB"
+    },
+    {
+      "id": "R04",
+      "team": "R",
+      "role": "RCB"
+    },
+    {
+      "id": "R02",
+      "team": "R",
+      "role": "RB"
+    },
+    {
+      "id": "R06",
+      "team": "R",
+      "role": "LDM"
+    },
+    {
+      "id": "R08",
+      "team": "R",
+      "role": "RDM"
+    },
+    {
+      "id": "R11",
+      "team": "R",
+      "role": "LW"
+    },
+    {
+      "id": "R10",
+      "team": "R",
+      "role": "CAM"
+    },
+    {
+      "id": "R07",
+      "team": "R",
+      "role": "RW"
+    },
+    {
+      "id": "R09",
+      "team": "R",
+      "role": "ST"
+    },
+    {
+      "id": "S01",
+      "team": "S",
+      "role": "GK"
+    },
+    {
+      "id": "S03",
+      "team": "S",
+      "role": "LB"
+    },
+    {
+      "id": "S05",
+      "team": "S",
+      "role": "LCB"
+    },
+    {
+      "id": "S04",
+      "team": "S",
+      "role": "RCB"
+    },
+    {
+      "id": "S02",
+      "team": "S",
+      "role": "RB"
+    },
+    {
+      "id": "S06",
+      "team": "S",
+      "role": "LDM"
+    },
+    {
+      "id": "S08",
+      "team": "S",
+      "role": "RDM"
+    },
+    {
+      "id": "S11",
+      "team": "S",
+      "role": "LW"
+    },
+    {
+      "id": "S10",
+      "team": "S",
+      "role": "CAM"
+    },
+    {
+      "id": "S07",
+      "team": "S",
+      "role": "RW"
+    },
+    {
+      "id": "S09",
+      "team": "S",
+      "role": "ST"
+    },
+    {
+      "id": "T01",
+      "team": "T",
+      "role": "GK"
+    },
+    {
+      "id": "T03",
+      "team": "T",
+      "role": "LB"
+    },
+    {
+      "id": "T05",
+      "team": "T",
+      "role": "LCB"
+    },
+    {
+      "id": "T04",
+      "team": "T",
+      "role": "RCB"
+    },
+    {
+      "id": "T02",
+      "team": "T",
+      "role": "RB"
+    },
+    {
+      "id": "T06",
+      "team": "T",
+      "role": "LDM"
+    },
+    {
+      "id": "T08",
+      "team": "T",
+      "role": "RDM"
+    },
+    {
+      "id": "T11",
+      "team": "T",
+      "role": "LW"
+    },
+    {
+      "id": "T10",
+      "team": "T",
+      "role": "CAM"
+    },
+    {
+      "id": "T07",
+      "team": "T",
+      "role": "RW"
+    },
+    {
+      "id": "T09",
+      "team": "T",
+      "role": "ST"
+    }
+  ]
+}

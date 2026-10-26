@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Team Player · Head-to-head</title>
+<style>
+body{background:#101a22;color:#e7eff5;font:15px system-ui,sans-serif;max-width:1100px;margin:24px auto;padding:0 18px}
+h1{margin:0 0 4px}.muted{color:#9eb7bc;font-size:13px}select,button{font:inherit;padding:8px 10px;border-radius:7px;border:1px solid #3a5157;background:#183138;color:#e7eff5}
+.bar{display:flex;flex-wrap:wrap;gap:14px;align-items:end;margin:18px 0}label{display:grid;gap:5px;font-size:12px;color:#9eb7bc}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px 6px;border-bottom:1px solid #26404a;text-align:left}th{color:#83e2bd;font-weight:600}
+td.num{font-variant-numeric:tabular-nums}.panel{background:#172733;border-radius:12px;padding:16px;margin-top:16px;line-height:1.55}
+.warn{color:#f3cc80}a.q{display:inline-block;width:15px;height:15px;line-height:15px;text-align:center;border-radius:50%;background:#2c4a55;color:#f3cc80;font-size:10px;text-decoration:none;margin-left:2px;vertical-align:super}
+</style>
+<h1>Head-to-head</h1><div class="muted" id="context">Waiting for the match viewer…</div>
+<div class="bar"><label>Player in this match<select id="left"></select></label><label>Compare with (any league player)<select id="right"></select></label>
+<button id="ask">Ask the AI consultant</button></div>
+<table id="table"></table>
+<div class="panel"><b>In plain English</b><div id="summary" class="muted">Choose two players.</div></div>
+<div class="panel"><b>Read this carefully</b><div id="warnings" class="warn"></div></div>
+<p class="muted">History = every analysed match of the history seasons. This match = the live match so far (analysed online). Rates are per 10 minutes of the player's team having the ball. Own value<a class="q" href="/glossary#own%20value" target="_blank">?</a> is the player's own contribution; team outcome<a class="q" href="/glossary#team%20outcome" target="_blank">?</a> is shared with team-mates.</p>
+<script>
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const channel=new BroadcastChannel('team-player'),SUPPORTED=new Set(['ST','LST','RST','LW','RW','LM','RM','LB','RB']);
+const fam=r=>r.includes('ST')?'striker':['LB','RB'].includes(r)?'fullback':['LW','RW','LM','RM'].includes(r)?'winger':'other';
+let roster=[],matchPlayers=[],last=null,asked=false;const want=new URLSearchParams(location.search).get('left');
+function opt(v,l){const o=document.createElement('option');o.value=v;o.textContent=l;return o}
+fetch('/api/roster').then(r=>r.json()).then(d=>{roster=d.players;fillRight()});
+function fillRight(){const l=$('left').value,lf=fam((roster.find(p=>p.id===l)||{}).role||'');const s=$('right'),keep=s.value;s.replaceChildren();
+ const same=roster.filter(p=>p.id!==l&&fam(p.role)===lf),rest=roster.filter(p=>p.id!==l&&fam(p.role)!==lf&&SUPPORTED.has(p.role));
+ const g1=document.createElement('optgroup');g1.label='Same role';same.forEach(p=>g1.append(opt(p.id,`${p.id} · ${p.role}`)));
+ const g2=document.createElement('optgroup');g2.label='Other roles';rest.forEach(p=>g2.append(opt(p.id,`${p.id} · ${p.role}`)));s.append(g1,g2);
+ if([...s.options].some(o=>o.value===keep))s.value=keep}
+function request(review=false){channel.postMessage({type:'request',left:$('left').value,right:$('right').value,review})}
+$('left').onchange=()=>{fillRight();request()};$('right').onchange=()=>request();$('ask').onclick=()=>{asked=true;request(true)};
+const f=(v,d=3)=>v===null||v===undefined?'–':Number(v).toFixed(d);
+function render(m){const c=m.comparison;if(!c)return;const a=c.left,b=c.right;
+ $('context').textContent=`Live: ${m.season||''} ${m.matchweek?'matchweek '+m.matchweek:''} · Team ${m.teams.join(' v Team ')} · ${Math.floor(m.t/60)} min played`;
+ const rows=[['Matches in history',a.matches??'–',null,b.matches??'–',null],
+  ['Team possession observed (min)',f(a.possession_s/60,1),a.current?f(a.current.possession_s/60,1):'–',f(b.possession_s/60,1),b.current?f(b.current.possession_s/60,1):'not in this match'],
+  ...c.event_metrics.map(e=>[e.label,f(a.rates?.[e.key]),a.current?f(a.current.rates?.[e.key]):'–',f(b.rates?.[e.key]),b.current?f(b.current.rates?.[e.key]):'not in this match']),
+  ...c.metrics.map(e=>[e.label+' (% of possession)',f(a.percentages?.[e.key],1),a.current?f(a.current.percentages?.[e.key],1):'–',f(b.percentages?.[e.key],1),b.current?f(b.current.percentages?.[e.key],1):'not in this match'])];
+ $('table').innerHTML=`<tr><th>Per 10 min of team possession</th><th>${esc(a.id)} · history</th><th>${esc(a.id)} · this match</th><th>${esc(b.id)} · history</th><th>${esc(b.id)} · this match</th></tr>`+
+  rows.map(r=>`<tr><td>${esc(r[0])}</td>${r.slice(1).map(v=>`<td class="num">${v===null?'':esc(v)}</td>`).join('')}</tr>`).join('');
+ const s=m.consultant?.summary?.text||c.advice.map(x=>x.text).join(' ');$('summary').textContent=(m.pending?'AI consultant reviewing… ':'')+s+(m.consultant?.method==='microsoft_foundry_agent'?' (AI-reviewed)':'');
+ $('warnings').textContent=c.warnings.join(' ')||'No warnings.'}
+channel.onmessage=ev=>{const m=ev.data;if(m.type!=='tick')return;last=m;
+ if(!matchPlayers.length&&m.players){matchPlayers=m.players.filter(p=>SUPPORTED.has(p.role));const s=$('left');matchPlayers.forEach(p=>s.append(opt(p.id,`${p.id} · Team ${p.team} · ${p.role}`)));
+  s.value=matchPlayers.some(p=>p.id===want)?want:matchPlayers[0].id;fillRight();request()}
+ render(m)};
+setTimeout(()=>{if(!last)$('context').textContent='Open this page with the Head-to-head button in the match viewer (the live figures come from that tab).'},3000);
+</script></html>
