@@ -26,6 +26,8 @@ class FixtureTests(unittest.TestCase):
         self.assertNotEqual([f["seed"] for f in F], [f["seed"] for f in fixtures(HISTORY_SEASONS[1])])
 
     def test_match_file_has_season_metadata_and_is_reproducible(self):
+        self.assertEqual(CURRENT_SEASON, "2026-27")
+        self.assertNotIn(CURRENT_SEASON, HISTORY_SEASONS)
         fx = fixtures(CURRENT_SEASON)[0]
         with tempfile.TemporaryDirectory() as d:
             write_fixture(fx, Path(d) / "a", duration=2);write_fixture(fx, Path(d) / "b", duration=2)

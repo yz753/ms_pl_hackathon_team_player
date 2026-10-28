@@ -285,6 +285,8 @@ class TacticalTracker:
             for w in self.watches:
                 if w["opp"] == team and t <= w["until"]:
                     w["goal_against"] = True
+                    if t <= w["t"] + COUNTER_WINDOW:
+                        w["goal_12s"] = True
 
     def record_carry(self, i, B, ok):
         if self.spell and self.spell["player"] == i:
@@ -305,6 +307,9 @@ class TacticalTracker:
         for w in self.watches:
             if w["opp"] == team and t <= w["until"]:
                 w["xg_against"] += model["xg"];w["shots_against"] += 1
+                if t <= w["t"] + COUNTER_WINDOW:
+                    w["xg_12s"] += model["xg"];w["shots_12s"] += 1
+                shot.setdefault("counter_charged_players", []).extend(ep["player"] for ep in w["subscribers"])
         return shot
 
     def on_pass(self, r, receiver, P, B, t):
@@ -487,7 +492,7 @@ class TacticalTracker:
     # -------------------------------------------------------- counter watch ---
     def open_watch(self, t, record, opp, completed):
         w = {"t": t, "until": t + COUNTER_WINDOW, "opp": opp, "record": record, "xg_against": 0.0,
-             "shots_against": 0, "goal_against": False, "flank_entry": {"L": False, "R": False},
+             "shots_against": 0, "goal_against": False, "xg_12s": 0.0, "shots_12s": 0, "goal_12s": False, "flank_entry": {"L": False, "R": False},
              "max_progress": 0.0, "subscribers": []}
         self.watches.append(w)
         return w
@@ -500,22 +505,28 @@ class TacticalTracker:
                     if self.in_flank(bl, side):
                         w["flank_entry"][side] = True
             w["max_progress"] = max(w["max_progress"], 105 - bl[0])
-            if t >= w["until"]:
+            connected_ended = bool(w["subscribers"]) and (w["goal_against"] or
+                (self.poss is not None and self.poss["team"] != w["opp"] and t > w["t"]) or
+                B[0] < 0 or B[0] > 105 or B[1] < 0 or B[1] > 68)
+            if t >= w["until"] or connected_ended:
+                w["ended_at"] = t
+                w["truncated"] = t >= w["until"] and not connected_ended
                 self.finish_watch(w, completed)
 
     def finish_watch(self, w, completed):
         r = w["record"]
-        r.update(conceded_xg_12s=_r(w["xg_against"], 4), conceded_shots_12s=w["shots_against"],
-                 conceded_goal_12s=w["goal_against"])
+        r.update(conceded_xg_12s=_r(w["xg_12s"], 4), conceded_shots_12s=w["shots_12s"],
+                 conceded_goal_12s=w["goal_12s"])
         for win in r.get("windows", []):
             if win["lost_in_horizon"]:
-                win.update(conceded_xg_12s=_r(w["xg_against"], 4), conceded_goal_12s=w["goal_against"])
+                win.update(conceded_xg_12s=_r(w["xg_12s"], 4), conceded_goal_12s=w["goal_12s"])
         completed.append(r)
         for ep in w["subscribers"]:
             side = ep["side"]
             ep["counter"] = {"xg_against": _r(w["xg_against"], 4), "shots_against": w["shots_against"],
                              "goal_against": w["goal_against"], "through_vacated_flank": w["flank_entry"][side],
-                             "opp_progress_m": _r(w["max_progress"], 1)}
+                             "opp_progress_m": _r(w["max_progress"], 1),
+                             "observed_until": w.get("ended_at", w["until"]), "truncated": w.get("truncated", False)}
             v = ep["value"];self.set_value(ep, v["pv_start"], v["pv_end"], w["xg_against"])
             completed.append(ep)
         self.watches.remove(w)
@@ -710,7 +721,9 @@ class TacticalTracker:
         self.set_individual(ep, ep.pop("_position_value", 0.0), ep.pop("_risk_cost", 0.0))
         if turnover and self.watches:
             ep["risk_at_loss"] = rs[-1] if rs else None
-            self.watches[-1]["subscribers"].append(ep)  # completed when the 12 s watch ends
+            self.watches[-1]["subscribers"].append(ep)
+            # Follow this connected counter until it ends, bounded at 30 seconds.
+            self.watches[-1]["until"] = self.watches[-1]["t"] + 30.0
         else:
             completed.append(ep)
 
@@ -775,14 +788,16 @@ class TacticalTracker:
         return p0 + frac * gap, vel
 
     def new_defence(self, i, team, t, P, phase):
-        return {"phase": phase, "t0": t, "p0": P[i].copy(), "own": 0.0, "team": 0.0, "windows": 0, "window": None,
+        return {"player": self.ids[i], "phase": phase, "t0": t, "p0": P[i].copy(), "own": 0.0, "team": 0.0, "windows": 0, "window": None,
                 "threat_start": None, "shots_xg": 0.0}
 
     def close_window(self, d, team, t, share):
         """share = fraction of the window's expected threat that had the chance to happen."""
         t0, threat = d["window"]
-        shots = sum(s["xg"] for s in self.shot_log if s["team"] != team and t0 - 1e-9 <= s["t"] < t + 1e-9)
-        d["team"] += threat * share - shots;d["shots_xg"] += shots;d["windows"] += 1
+        window_shots = [s for s in self.shot_log if s["team"] != team and t0 - 1e-9 <= s["t"] < t + 1e-9]
+        shots = sum(s["xg"] for s in window_shots if d.get("player") not in s.get("counter_charged_players", []))
+        d["team"] += threat * share - shots;d["shots_xg"] += sum(s["xg"] for s in window_shots);d["windows"] += 1
+        d["counter_cost_elsewhere"] = d.get("counter_cost_elsewhere", 0.0) + sum(s["xg"] for s in window_shots) - shots
         d["threat_start"] = threat if d["threat_start"] is None else d["threat_start"]
         d["window"] = None
 
@@ -801,7 +816,7 @@ class TacticalTracker:
               "team": self.team_names[team], "side": self.flank_of(i), "t_start": d["t0"], "t_end": t,
               "duration_s": _r(t - d["t0"], 1), "regained": regained,
               "individual": {"net": _r(d["own"], 5)},
-              "value": {"threat_start": _r(d["threat_start"], 4), "shots_xg": _r(d["shots_xg"], 4), "windows": d["windows"], "net": _r(d["team"], 4)}}
+              "value": {"threat_start": _r(d["threat_start"], 4), "shots_xg": _r(d["shots_xg"], 4), "counter_cost_in_advance": _r(d.get("counter_cost_elsewhere", 0.0), 4), "windows": d["windows"], "net": _r(d["team"], 4)}}
         completed.append(ep)
 
     # -------------------------------------------------------------- wingers ---

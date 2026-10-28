@@ -7,43 +7,53 @@ h1{margin:0 0 4px}.muted{color:#9eb7bc;font-size:13px}select,button{font:inherit
 .bar{display:flex;flex-wrap:wrap;gap:14px;align-items:end;margin:18px 0}label{display:grid;gap:5px;font-size:12px;color:#9eb7bc}
 table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px 6px;border-bottom:1px solid #26404a;text-align:left}th{color:#83e2bd;font-weight:600}
 td.num{font-variant-numeric:tabular-nums}.panel{background:#172733;border-radius:12px;padding:16px;margin-top:16px;line-height:1.55}
-.warn{color:#f3cc80}a.q{display:inline-block;width:15px;height:15px;line-height:15px;text-align:center;border-radius:50%;background:#2c4a55;color:#f3cc80;font-size:10px;text-decoration:none;margin-left:2px;vertical-align:super}
+a.q{display:inline-block;width:15px;height:15px;line-height:15px;text-align:center;border-radius:50%;background:#2c4a55;color:#f3cc80;font-size:10px;text-decoration:none;margin-left:2px;vertical-align:super}
 </style>
 <h1>Head-to-head</h1><div class="muted" id="context">Waiting for the match viewer…</div>
 <div class="bar"><label>Player in this match<select id="left"></select></label><label>Compare with (any league player)<select id="right"></select></label>
-<button id="ask">Ask the AI consultant</button></div>
-<table id="table"></table>
-<div class="panel"><b>In plain English</b><div id="summary" class="muted">Choose two players.</div></div>
-<div class="panel"><b>Read this carefully</b><div id="warnings" class="warn"></div></div>
-<p class="muted">History = every analysed match of the history seasons. This match = the live match so far (analysed online). Rates are per 10 minutes of the player's team having the ball. Own value<a class="q" href="/glossary#own%20value" target="_blank">?</a> is the player's own contribution; team outcome<a class="q" href="/glossary#team%20outcome" target="_blank">?</a> is shared with team-mates.</p>
+<button id="ask">Refresh AI comparison</button></div>
+<div class="panel"><b>AI comparison</b><div id="summary" class="muted" role="status" aria-live="polite">Choose two players.</div></div>
+<table id="table" style="margin-top:16px"></table>
+<p class="muted">History = every analysed match of the history seasons. This match = the live match so far (analysed online). Gain figures cover qualifying scored movements per 10 minutes of team possession, not overall player contribution. Positioning percentages describe time during team possession, not how often or how far a player moves. No scored movement does not mean no contribution. Own value<a class="q" href="/glossary#own%20value" target="_blank">?</a> is the modelled individual net contribution; team outcome<a class="q" href="/glossary#team%20outcome" target="_blank">?</a> is shared with team-mates.</p>
 <script>
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const channel=new BroadcastChannel('team-player'),SUPPORTED=new Set(['ST','LST','RST','LW','RW','LM','RM','LB','RB']);
+const channel=new BroadcastChannel('team-player-'+new URLSearchParams(location.search).get('session')),SUPPORTED=new Set(['ST','LST','RST','LW','RW','LM','RM','LB','RB']);
 const fam=r=>r.includes('ST')?'striker':['LB','RB'].includes(r)?'fullback':['LW','RW','LM','RM'].includes(r)?'winger':'other';
-let roster=[],matchPlayers=[],last=null,asked=false;const want=new URLSearchParams(location.search).get('left');
+let roster=[],matchPlayers=[],last=null,requestId=0;const want=new URLSearchParams(location.search).get('left');
 function opt(v,l){const o=document.createElement('option');o.value=v;o.textContent=l;return o}
-fetch('/api/roster').then(r=>r.json()).then(d=>{roster=d.players;fillRight()});
+fetch('/api/roster').then(r=>r.json()).then(d=>{roster=d.players;fillRight();if(matchPlayers.length)request()}).catch(()=>{$('summary').textContent='Could not load the league roster. Reload to retry.'});
 function fillRight(){const l=$('left').value,lf=fam((roster.find(p=>p.id===l)||{}).role||'');const s=$('right'),keep=s.value;s.replaceChildren();
  const same=roster.filter(p=>p.id!==l&&fam(p.role)===lf),rest=roster.filter(p=>p.id!==l&&fam(p.role)!==lf&&SUPPORTED.has(p.role));
  const g1=document.createElement('optgroup');g1.label='Same role';same.forEach(p=>g1.append(opt(p.id,`${p.id} · ${p.role}`)));
  const g2=document.createElement('optgroup');g2.label='Other roles';rest.forEach(p=>g2.append(opt(p.id,`${p.id} · ${p.role}`)));s.append(g1,g2);
  if([...s.options].some(o=>o.value===keep))s.value=keep}
-function request(review=false){channel.postMessage({type:'request',left:$('left').value,right:$('right').value,review})}
-$('left').onchange=()=>{fillRight();request()};$('right').onchange=()=>request();$('ask').onclick=()=>{asked=true;request(true)};
+function request(review=true){if(!$('left').value||!$('right').value)return;
+ requestId++;const l=$('left').value,r=$('right').value;if(l[0]===r[0]||l.slice(1)!==r.slice(1)){$('summary').textContent='Please select players in the same position in different teams';$('table').replaceChildren();$('ask').disabled=false;$('ask').textContent='Refresh AI comparison';channel.postMessage({type:'request',left:l,right:r,review:false,request_id:requestId});return;}$('ask').disabled=review;$('ask').textContent=review?'Analysing…':'Refresh AI comparison';
+ $('summary').textContent=review?'Azure AI is analysing the statistics. Please wait…':'AI comparison unavailable. Select Refresh AI comparison to retry.';
+ $('table').replaceChildren();
+ channel.postMessage({type:'request',left:$('left').value,right:$('right').value,review,request_id:requestId})}
+$('left').onchange=()=>{fillRight();request()};$('right').onchange=()=>request();$('ask').onclick=()=>{request(true)};
 const f=(v,d=3)=>v===null||v===undefined?'–':Number(v).toFixed(d);
-function render(m){const c=m.comparison;if(!c)return;const a=c.left,b=c.right;
- $('context').textContent=`Live: ${m.season||''} ${m.matchweek?'matchweek '+m.matchweek:''} · Team ${m.teams.join(' v Team ')} · ${Math.floor(m.t/60)} min played`;
- const rows=[['Matches in history',a.matches??'–',null,b.matches??'–',null],
-  ['Team possession observed (min)',f(a.possession_s/60,1),a.current?f(a.current.possession_s/60,1):'–',f(b.possession_s/60,1),b.current?f(b.current.possession_s/60,1):'not in this match'],
-  ...c.event_metrics.map(e=>[e.label,f(a.rates?.[e.key]),a.current?f(a.current.rates?.[e.key]):'–',f(b.rates?.[e.key]),b.current?f(b.current.rates?.[e.key]):'not in this match']),
-  ...c.metrics.map(e=>[e.label+' (% of possession)',f(a.percentages?.[e.key],1),a.current?f(a.current.percentages?.[e.key],1):'–',f(b.percentages?.[e.key],1),b.current?f(b.current.percentages?.[e.key],1):'not in this match'])];
- $('table').innerHTML=`<tr><th>Per 10 min of team possession</th><th>${esc(a.id)} · history</th><th>${esc(a.id)} · this match</th><th>${esc(b.id)} · history</th><th>${esc(b.id)} · this match</th></tr>`+
-  rows.map(r=>`<tr><td>${esc(r[0])}</td>${r.slice(1).map(v=>`<td class="num">${v===null?'':esc(v)}</td>`).join('')}</tr>`).join('');
- const s=m.consultant?.summary?.text||c.advice.map(x=>x.text).join(' ');$('summary').textContent=(m.pending?'AI consultant reviewing… ':'')+s+(m.consultant?.method==='microsoft_foundry_agent'?' (AI-reviewed)':'');
- $('warnings').textContent=c.warnings.join(' ')||'No warnings.'}
-channel.onmessage=ev=>{const m=ev.data;if(m.type!=='tick')return;last=m;
+function render(m){const c=m.comparison;if(!c)return;if(c.selection_error){$('summary').textContent=c.selection_error;$('table').replaceChildren();return;}const a=c.left,b=c.right;
+ $('context').textContent=`Live: ${last?.season||''} ${last?.matchweek?'matchweek '+last.matchweek:''} · Team ${(last?.teams||[]).join(' v Team ')} · ${Math.floor(c.t/60)} min played`;
+ const positionKeys={striker:['deep_s','box_s'],fullback:['advanced_s','forward_offer_s'],winger:['followed_s','forward_offer_s']};
+ const labels={indiv_net:'Personal gain',value_net:'Shared team gain',deep_s:'Time in deeper striker area (%)',box_s:'Time centrally in attacking third (%)',advanced_s:'Time advanced from fullback (%)',forward_offer_s:'Time available for a forward pass (%)',followed_s:'Time with off-ball following evidence (%)'};
+ const gain=(p,key,current)=>{const row=current?p.current:p;if(!row)return 'not in this match';if(!(current?row.episodes:p.value_n))return 'No scored movement';return f(row.rates?.[key])};
+ const rows=['indiv_net','value_net'].map(k=>[labels[k],gain(a,k,false),gain(a,k,true),gain(b,k,false),gain(b,k,true)]);
+ for(const k of positionKeys[fam(a.role)]||[])rows.push([labels[k],f(a.percentages?.[k],1),a.current?f(a.current.percentages?.[k],1):'not in this match',f(b.percentages?.[k],1),b.current?f(b.current.percentages?.[k],1):'not in this match']);
+ $('table').innerHTML=`<tr><th>Measure</th><th>${esc(a.id)} · history</th><th>${esc(a.id)} · this match</th><th>${esc(b.id)} · history</th><th>${esc(b.id)} · this match</th></tr>`+
+  rows.map(r=>`<tr><td>${esc(r[0])}${['Personal gain','Shared team gain'].includes(r[0])?`<a class="q" href="/glossary#${r[0]==='Personal gain'?'personal%20gain':'team%20gain'}" target="_blank">?</a>`:''}</td>${r.slice(1).map(v=>`<td class="num">${v===null?'':esc(v)}</td>`).join('')}</tr>`).join('');
+ $('ask').disabled=!!m.pending;$('ask').textContent=m.pending?'Analysing…':'Refresh AI comparison';
+ $('summary').textContent=m.pending?'Azure AI is analysing the statistics. Please wait…':m.consultant?.summary?.text?m.consultant.summary.text+' (Azure AI · comparison at '+Math.floor(c.t/60)+' mins '+Math.floor(c.t%60)+' seconds)':m.consultant?.error||'AI comparison unavailable. Select Refresh AI comparison to retry.';
+ if(!m.pending&&m.consultant?.summary?.text){
+  $('summary').innerHTML=esc($('summary').textContent).replace(/\b(?:personal gains?|shared team gains?|team gains?|estimated net contribution|model units|xG)\b/gi,term=>`${term}<a class="q" href="/glossary#${encodeURIComponent(term.replace(/gains$/i,'gain'))}" target="_blank">?</a>`)}
+}
+channel.onmessage=ev=>{const m=ev.data;
+ if(m.type==='comparison'){if(m.request_id!==requestId||m.comparison.left.id!==$('left').value||m.comparison.right.id!==$('right').value)return;render(m);return}
+ if(m.type!=='context')return;last=m;
  if(!matchPlayers.length&&m.players){matchPlayers=m.players.filter(p=>SUPPORTED.has(p.role));const s=$('left');matchPlayers.forEach(p=>s.append(opt(p.id,`${p.id} · Team ${p.team} · ${p.role}`)));
-  s.value=matchPlayers.some(p=>p.id===want)?want:matchPlayers[0].id;fillRight();request()}
- render(m)};
+  if(!matchPlayers.length)return;s.value=matchPlayers.some(p=>p.id===want)?want:matchPlayers[0].id;fillRight();request()}
+};
+channel.postMessage({type:'ready'});
 setTimeout(()=>{if(!last)$('context').textContent='Open this page with the Head-to-head button in the match viewer (the live figures come from that tab).'},3000);
 </script></html>

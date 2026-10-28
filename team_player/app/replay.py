@@ -24,7 +24,7 @@ table{width:100%;font-size:14px}td{padding:4px}small{color:#b9cbd6}.controls{mar
 <div class="controls"><button id="play">Play</button><select id="speed"><option>0.25</option><option>0.5</option><option>1</option><option selected>2</option><option>4</option><option>8</option></select>
 <input id="seek" type="range" min="0" step="1" value="0"><span id="clock"></span></div>
 <p id="ballState"></p><div id="eventLog"></div>
-<small><span id="teamLegend"></span> · White: ball · Gold ring: role excursion.<br>
+<small><span id="teamLegend"></span> · White: ball · Gold ring: selected player.<br>
 Dashed links: observed following evidence, not proven intent. Click a player to follow their contribution.</small>
 </section><aside><div class="story-heading">The contribution behind the moment</div>
 <p><label for="focusPlayer">Follow a player</label> <select id="focusPlayer"></select></p>
@@ -54,9 +54,9 @@ function render(){
  ctx.strokeRect(0,138.5,165,403);ctx.strokeRect(885,138.5,165,403);ctx.strokeRect(0,248.4,55,183.2);ctx.strokeRect(995,248.4,55,183.2);
  const ps=Object.fromEntries(f.players.map(p=>[p.id,p]));
  if(a){ctx.setLineDash([8,6]);for(const link of a.following){const r=ps[link.runner],d=ps[link.defender];line(r.x,r.y,d.x,d.y,'#f3cc80')}ctx.setLineDash([]);}
- for(const p of f.players){const metric=a?.players.find(v=>v.player===p.id);if(metric?.excursion)circle(p.x,p.y,1.1,'#f3cc80');
+ for(const p of f.players){const metric=a?.players.find(v=>v.player===p.id);
  circle(p.x,p.y,.65,lookup[p.id].team===meta.teams[0].id?'#63bcff':'#ff8d80');
- if(p.id===selected){ctx.strokeStyle='white';ctx.beginPath();ctx.arc(p.x*10,p.y*10,22,0,Math.PI*2);ctx.stroke()}
+ if(p.id===selected){ctx.strokeStyle='#f3cc80';ctx.lineWidth=3;ctx.beginPath();ctx.arc(p.x*10,p.y*10,22,0,Math.PI*2);ctx.stroke()}
  ctx.fillStyle='white';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#16392e';
  const label=`${p.id} · ${lookup[p.id].role}`;ctx.strokeText(label,p.x*10,p.y*10-12);ctx.fillText(label,p.x*10,p.y*10-12);}
  if(f.ball.state==='shot'||f.ball.state==='pass'){const past=F[Math.max(0,index-3)];ctx.lineWidth=3;line(past.ball.x,past.ball.y,f.ball.x,f.ball.y,'rgba(255,255,255,.5)');}

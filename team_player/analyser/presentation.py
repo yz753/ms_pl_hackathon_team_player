@@ -17,7 +17,8 @@ class Preferences:
 
 
 def evidence_snapshot(analysis,gate,preferences,recent_events=(),tactics=None,episodes=()):
-    p=next(p for p in analysis['players'] if p['player']==preferences.player)
+    p=next((p for p in analysis['players'] if p['player']==preferences.player),None)
+    if p is None:raise ValueError(f'Player {preferences.player!r} is absent from this match analysis')
     team=analysis['teams'][p['team']];cards=[];t=analysis['t']
     supported=p['role'] in SUPPORTED   # other roles: "to be developed" in the viewer
     active=gate['eligible'] and gate['team']==p['team'] and supported

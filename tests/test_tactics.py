@@ -66,7 +66,7 @@ class TacticalEpisodeTests(unittest.TestCase):
         for _ in range(40):
             frames.append(frame(t, pos, pos["A06"]));t += .1
         lost = copy.deepcopy(pos)
-        for _ in range(140):  # B wins it and attacks down A's vacated left
+        for _ in range(320):  # Connected counter reaches the 30-second safety cap
             lost["B07"] = [max(5., lost["B07"][0] - .6), 12.]
             frames.append(frame(t, lost, lost["B07"]));t += .1
         pipe, out = self.run_frames(meta, frames)
@@ -169,6 +169,18 @@ class SituationTests(unittest.TestCase):
         self.assertTrue(all(a["choices"]["striker_dropped"] for a in sd["closest_alternative"]))  # current did not drop
         self.assertTrue(all(n["file"] != "m0.jsonl" for n in r["neighbours"]))
         self.assertTrue(any("Associative" in w for w in r["warnings"]))
+
+    def test_excludes_focus_team_before_nearest_selection(self):
+        lib = self.library()
+        for i,w in enumerate(lib['windows']):
+            if i>=100:w['team']='C';w['opponent']='A'
+        index=SituationIndex(lib)
+        r=index.query(lib['windows'][0]['context'],team='A',opponent='B',exclude_team='A')
+        self.assertEqual(r['pool_size'],20)
+        self.assertTrue(all(n['team']=='C' for n in r['neighbours']))
+        for group in r['by_choice'].values():
+            self.assertTrue(all(n['team']=='C' for n in group['closest_yes']+group['closest_no']))
+        self.assertFalse(SituationIndex(self.library()).query(lib['windows'][0]['context'],exclude_team='A')['available'])
 
     def test_choice_flag_formats(self):
         self.assertTrue(choice_flags({"fb_advanced_R": True})["fb_advanced"])

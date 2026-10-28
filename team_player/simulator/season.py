@@ -35,7 +35,7 @@ def fixtures(season):
     """Double round robin (circle method), 38 matchweeks, alternating home and away.
 
     The team order is shuffled per season with a seeded RNG, so each season has its own calendar."""
-    index = SEASONS.index(season) if season in SEASONS else int(season[:4]) - 2019
+    index = HISTORY_SEASONS.index(season) if season in HISTORY_SEASONS else int(season[:4]) - 2019
     rng = np.random.default_rng(np.random.SeedSequence([SEASON_SEED, index, 0]))
     teams = [str(t) for t in rng.permutation(TEAMS)]
     n = len(teams);rounds = []

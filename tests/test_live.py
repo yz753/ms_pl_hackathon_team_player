@@ -15,7 +15,7 @@ from team_player.agents.foundry import FoundryDirector,bounded_explanation
 
 
 def fixture_snapshot():
-    return {'t':12.,'episode_id':3,'eligible':True,'player':{'player':'A09'},'team':{},'audience':'fan','focus':'all','changes':{},'limitations':['No causal proof'],'recent_events':[],
+    return {'impact':{'key':'A09:test:12','player':'A09','kind':'striker_receiving_danger','t_start':12,'observed_at':12,'evidence':{'passing_lane_margin_s':.4}},'t':12.,'episode_id':3,'eligible':True,'player':{'player':'A09'},'team':{},'audience':'fan','focus':'all','changes':{},'limitations':['No causal proof'],'recent_events':[],
         'cards':[{'id':'c1','player':'A09','title':'Link','fan':'Offers a pass.','analyst':'Lane margin 0.4 s.',
                   'caveat':'Not causal proof.','topic':'support','value':.4,'unit':'s'}]}
 

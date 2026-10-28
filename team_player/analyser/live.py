@@ -16,6 +16,7 @@ class LivePipeline:
         self.analysis=None;self.latest_gate=None;self.latencies=[]
 
     def update(self,raw,preferences):
+        preferences.validate(self.observer.meta)
         started=time.perf_counter()
         frame=self.observer.update(raw);gate=self.gate.update(frame)
         for event in frame['events']:self.recent.append({'t':frame['t'],**event})

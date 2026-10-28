@@ -1,0 +1,26 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Team Player · Reports</title>
+<style>body{background:#101a22;color:#e7eff5;font:16px system-ui;max-width:850px;margin:30px auto;padding:0 20px}article,details{background:#172733;padding:16px;margin:14px 0;border-radius:10px;line-height:1.6}small,p.note{color:#9eb7bc}summary{cursor:pointer;color:#83e2bd}table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:8px;border-bottom:1px solid #35515b;text-align:left}</style>
+<h1>Earlier AI reports</h1><p id="who"></p><p class="note">Reports describe their original match time, not the current frame. This archive belongs to the open replay and is stored in this browser. Older reports may label derived scores xG: that was legacy terminology for the same calculation, now labelled model units. Historical text is preserved, not regenerated.</p><div id="reports"></div>
+<details><summary>Observed movements and model estimates</summary><div id="metrics"></div><p class="note">Movement counts describe observed episodes, not player personalities. Individual and team value are experimental model scores on an expected-goal scale; they are not shot xG or proven effects of a player. Team value is shared with team-mates. These measures do not capture a player's entire performance.</p></details>
+<details><summary>Completed movement details</summary><div id="episodes"></div></details>
+<details><summary>Historical sample and shot-quality comparison</summary><div id="history"></div><p class="note">A moment is a sampled window inside a recording, not a whole match. Windows may overlap and are not independent matches. “With movement” and “without movement” are groups of similar past situations, not the same situation replayed both ways. Mean xG is estimated shot quality over the following 15 seconds, not goals or the causal benefit of that movement.</p></details>
+<script>
+const q=new URLSearchParams(location.search),player=q.get('player'),key='team-player-reports-'+q.get('session');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clock=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
+function render(){let d;try{d=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){d={}}
+ document.getElementById('who').textContent=player||'No player selected';
+ const reports=(d.reports||[]).filter(m=>m.player===player).sort((a,b)=>b.evidence_at-a.evidence_at);
+ document.getElementById('reports').innerHTML=reports.map(m=>`<article><small>${clock(m.evidence_at)} · Azure AI</small><h3>${esc(m.narrative.headline)}</h3>${esc(m.narrative.text)}</article>`).join('')||'No saved AI reports for this player.';
+ const row=d.row?.id===player?d.row:null;
+ const groups=row?.role?.includes('ST')?['drop_n','drop_link_n','drop_delivery_n','drop_box_absent_n']:['LB','RB'].includes(row?.role)?['fb_n','fb_ft_receptions','fb_turnover_n']:['run_n','decoy_n','decoy_drawn','decoy_used_n'];
+ const labels={drop_n:'Completed deeper movements',drop_link_n:'Forward link passes',drop_delivery_n:'Later deliveries assessed',drop_box_absent_n:'Deliveries with striker absent',fb_n:'Completed advances',fb_ft_receptions:'Final-third receptions',fb_turnover_n:'Team possession lost while advanced',run_n:'Completed off-ball runs',decoy_n:'Decoy runs',decoy_drawn:'Defender-following observations',decoy_used_n:'Decoys followed by space being used'};
+ document.getElementById('metrics').innerHTML=row?groups.map(k=>`<p>${labels[k]}: ${esc(row[k]??0)}</p>`).join('')+`<p>Estimated net contribution<a href="/glossary#estimated%20net%20contribution" target="_blank">?</a>: ${Number(row.indiv_net||0).toFixed(3)} model units<a href="/glossary#model%20units" target="_blank">?</a><br>Shared team value change: ${Number(row.value_net||0).toFixed(3)} model units</p>`:'Return to this player in the viewer to update measurements.';
+ document.getElementById('episodes').innerHTML=d.player===player?(d.episodes||[]).map(e=>`<article><b>${clock(e.t)} · ${esc(e.kind.replaceAll('_',' '))}</b><p>${esc(e.benefit)}</p><p>${esc(e.cost)}</p></article>`).join('')||'No completed movement has been recorded for this player yet. This does not mean there was no contribution.':'Return to this player in the viewer to update movement details.';
+ const h=d.history,s=d.similar;let ht=h?`<p>${h.matches} recordings · ${h.windows} sampled moments · ${esc(h.seasons.join(', '))}</p>`:'No history database summary available.';
+ if(s?.available){const choices=s.focus_choice?[s.by_choice[s.focus_choice]].filter(Boolean):[];
+ ht+=`<p>${s.k} nearest situations selected from ${s.pool_size} sampled moments.</p><table><tr><th>Movement</th><th>With movement: windows / mean shot xG</th><th>Without movement: windows / mean shot xG</th></tr>`+choices.map(v=>`<tr><td>${esc(v.label)}</td><td>${v.yes.n} / ${v.yes.xg==null?'not available':v.yes.xg.toFixed(3)}</td><td>${v.no.n} / ${v.no.xg==null?'not available':v.no.xg.toFixed(3)}</td></tr>`).join('')+'</table>'}
+ document.getElementById('history').innerHTML=ht;
+}
+window.addEventListener('storage',e=>{if(e.key===key)render()});render();
+</script></html>

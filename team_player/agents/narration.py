@@ -25,11 +25,12 @@ CERTAIN_NEGATIVE = re.compile(r"\b(no (?:real )?(?:benefit|value|impact|effect|u
 FULLBACK_DISMISSIVE = re.compile(r"\b(passive|idle|inactive|lazy|contributed little|did little|poor(?:ly)? defend\w*|"
                                  r"bad defend\w*|weak defend\w*|not (?:a )?good defender)\b", re.I)
 CAUSAL = re.compile(r"\b(caused|causes|proves?|proved|guarantee[sd]?|because of (him|her|them)|thanks to (him|her))\b", re.I)
-NUMBER = re.compile(r"(?<![A-Za-z])[-+−]?\d+(?:\.\d+)?")
+NUMBER = re.compile(r"(?<![A-Za-z0-9])[-+−]?\d+(?:\.\d+)?")
 
 
 def numbers_in(text):
-    return [float(x.replace("−", "-")) for x in NUMBER.findall(text or "")]
+    text = re.sub(r"\bMW\s*(\d+)\b", r"matchweek \1", text or "", flags=re.I)
+    return [float(x.replace("−", "-")) for x in NUMBER.findall(text)]
 
 
 def allowed_numbers(facts):
@@ -59,7 +60,7 @@ def check_grounding(text, facts, audience):
         problems.append("too certain: tackles and duels are not visible in positions, so a figure cannot call a fullback passive or a poor defender")
     if len(roles) == 1 and FOREIGN_TERMS[next(iter(roles))].search(text or ""):
         problems.append(f"wrong figure: that part is not in a {next(iter(roles))}'s figures")
-    if len((text or "").split()) > WORD_LIMIT[audience] + 15:
+    if len((text or "").split()) > 50:
         problems.append("too long")
     if audience != "analyst" and not numbers_in(text):
         problems.append("keep at least one number")
@@ -200,6 +201,26 @@ def overlay_facts(snapshot, cards):
         facts.append({"id": c["id"] + ":caveat", "text": c["caveat"]})
     for v in snapshot.get("verdicts", [])[:1]:
         facts.append({"id": "verdict", "text": f"Benefit: {v['benefit']} Cost: {v['cost']} {v.get('outcome', '')}"})
+    return facts
+
+
+def live_context_facts(snapshot):
+    """Explicit public team measurements shared by live prompt and validator.
+
+    These are current team geometry, not space created by the followed player.
+    Only named, finite measurements are admitted; arbitrary context stays excluded.
+    """
+    import math
+    labels = {
+        "attacking_control_area_m2": "Team attacking control area",
+        "exposed_wide_area_m2": "Team exposed wide area",
+    }
+    facts = []
+    for key, label in labels.items():
+        value = snapshot.get("team", {}).get(key)
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value >= 0:
+            facts.append({"id": "team:" + key,
+                          "text": f"{label}: {value:g} m². Current team geometry, not an individual contribution or proof of causation."})
     return facts
 
 

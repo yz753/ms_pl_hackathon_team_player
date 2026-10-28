@@ -59,6 +59,8 @@ class WorkerTests(unittest.TestCase):
             self.assertTrue(any(c == "ground-truth" for (c, n) in fake.data))   # private record kept apart
             self.assertEqual(w.analyse_task(names[0]), 1)
             self.assertTrue(any(c == "analysis" and n.startswith("matches/2019-20/") for (c, n) in fake.data))
+            # Malformed current-season reference data must be excluded even without --seasons.
+            fake.data[("analysis", f"matches/{w.CURRENT_SEASON}/demo.json.gz")] = b"must never be opened as history"
             w.build_store_remote()
             self.assertIn(("analysis", "history.db"), fake.data)
             self.assertFalse(w.claim(fake, f"simulate/{fx['fixture_id']}"))     # someone already owns it

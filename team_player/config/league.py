@@ -55,7 +55,7 @@ TEMPOS = ("mixed", "patient", "direct")
 # 38 matchweeks x 10 matches = 380 matches per season. History seasons are simulated and
 # analysed offline; the current season is streamed as if live (online analysis only).
 HISTORY_SEASONS = ("2019-20", "2020-21", "2021-22", "2022-23", "2023-24")
-CURRENT_SEASON = "2024-25"
+CURRENT_SEASON = "2026-27"
 SEASON_SEED = 20190801                 # master seed: same seed -> identical fixtures and matches
 SEASON_START = {"2019-20": "2019-08-10", "2020-21": "2020-09-12", "2021-22": "2021-08-14",
                 "2022-23": "2022-08-06", "2023-24": "2023-08-12", "2024-25": "2024-08-17"}

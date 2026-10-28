@@ -68,7 +68,7 @@ class SituationIndex:
         return len(self.t["id"])
 
     def query(self, context, lineup=None, team=None, opponent=None, k=SIMILARITY_K, current=None,
-              same_team_bonus=SAME_TEAM_BONUS, same_opponent_bonus=SAME_OPPONENT_BONUS, rng_seed=0):
+              same_team_bonus=SAME_TEAM_BONUS, same_opponent_bonus=SAME_OPPONENT_BONUS, rng_seed=0, exclude_team=None):
         """k nearest windows and outcome summaries split by each choice."""
         if not len(self):
             return {"available": False, "warnings": ["No history matches indexed yet. Build history.db from the history seasons."]}
@@ -78,15 +78,18 @@ class SituationIndex:
             d = d - same_team_bonus * (self.t["team"] == team)
         if opponent:
             d = d - same_opponent_bonus * (self.t["opp"] == opponent)
-        k = min(k, len(self));order = np.argsort(d)[:k];dk = d[order]
+        eligible = np.flatnonzero(self.t['team'] != exclude_team) if exclude_team else np.arange(len(self))
+        if not len(eligible):
+            return {'available': False, 'warnings': ['No historical situations from a different focus team are available.']}
+        k = min(k, len(eligible));order = eligible[np.argsort(d[eligible])[:k]];dk = d[order]
         h = max(float(np.median(dk)), 1e-6)
-        weights = np.exp(-(dk / h) ** 2 / 2)  # Gaussian kernel: closer neighbours count more
+        log_weights = -(dk / h) ** 2 / 2  # Keep Gaussian weights in log space until each group is normalised.
         rng = np.random.default_rng(rng_seed)
         C = self.t["choices"][order]
         flags_now = choice_flags(current["choices"]) if current else None
         by_choice = {}
         for c, (key, label) in enumerate(CHOICES.items()):
-            groups = {("yes" if flag else "no"): self.summarise(order[C[:, c] == flag], weights[C[:, c] == flag], rng)
+            groups = {("yes" if flag else "no"): self.summarise(order[C[:, c] == flag], log_weights[C[:, c] == flag], rng, log_weights=True)
                       for flag in (True, False)}
             diff = round(groups["yes"]["xg"] - groups["no"]["xg"], 4) if min(groups["yes"]["n"], groups["no"]["n"]) >= MIN_SIDE_N else None
             entry = {"label": label, **groups, "xg_difference": diff}
@@ -102,17 +105,22 @@ class SituationIndex:
         for v in by_choice.values():
             if v["xg_difference"] is None:
                 warnings.append(f"{v['label']}: fewer than {MIN_SIDE_N} neighbours on one side; no comparison shown.")
-        return {"available": True, "k": k, "pool_size": len(self), "bandwidth": round(h, 3),
+        return {"available": True, "k": k, "pool_size": len(eligible), "excluded_team": exclude_team, "bandwidth": round(h, 3),
                 "neighbours": [self.brief(order[j], dk[j]) for j in range(min(5, k))],
                 "by_choice": by_choice, "current": self.brief_record(current) if current else None,
                 "warnings": warnings, "advice": self.advice(by_choice, current)}
 
-    def summarise(self, rows, weights, rng, boots=200):
+    def summarise(self, rows, weights, rng, boots=200, *, log_weights=False):
         n = len(rows)
         if not n:
             return {"n": 0, "n_eff": 0, "xg": None, "goal_rate": None, "conceded_xg": None, "ci90_xg": None,
                     "final_third_rate": None, "max_xt": None}
-        w = np.asarray(weights, float);w = w / w.sum();t = self.t
+        w = np.asarray(weights, float)
+        if log_weights:
+            # Subtracting a common log weight preserves relative probabilities.
+            # Do this per choice group, including groups far from the closest match.
+            w = np.exp(w - np.max(w))
+        w = w / w.sum();t = self.t
         xg = t["xg"][rows]
         boot = [float(xg[s].mean()) for s in (rng.choice(n, n, p=w) for _ in range(boots))]
         return {"n": n, "n_eff": round(float(1 / np.sum(w ** 2)), 1), "xg": round(float(w @ xg), 4),

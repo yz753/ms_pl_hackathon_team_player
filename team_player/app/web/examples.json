@@ -1,0 +1,37 @@
+[
+  {
+    "title": "T09 \u00b7 The deep-lying striker",
+    "description": "A deep reception and long forward pass, followed by a teammate\u2019s goal.",
+    "file": "match_demo_2026_27_MW01_T_G.jsonl",
+    "player": "T09",
+    "moment": "1:43\u20131:53"
+  },
+  {
+    "title": "M09 \u00b7 When progression stalls",
+    "description": "A forward link pass meets blocked lanes and a numerical disadvantage. The attack ends without a shot.",
+    "file": "match_demo_2026-27-trial00033-J-M.jsonl",
+    "player": "M09",
+    "moment": "1:11\u20131:28"
+  },
+  {
+    "title": "K02 \u00b7 The attacking fullback",
+    "description": "An advance, a reception and a goal from the fullback.",
+    "file": "match_demo_2026-27-trial00039-K-N.jsonl",
+    "player": "K02",
+    "moment": "4:24\u20134:32"
+  },
+  {
+    "title": "S02 \u00b7 The space left behind",
+    "description": "After the fullback advances, the opposition exploits the vacated flank and scores.",
+    "file": "match_demo_2026_27_MW04_S_L.jsonl",
+    "player": "S02",
+    "moment": "8:41\u20139:02"
+  },
+  {
+    "title": "T11 \u00b7 A passing option disappears",
+    "description": "An off-ball run removes an accessible option before the team loses possession.",
+    "file": "match_demo_2026-27-trial00041-T-S.jsonl",
+    "player": "T11",
+    "moment": "5:10\u20135:16"
+  }
+]

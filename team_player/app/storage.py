@@ -18,6 +18,10 @@ NAME = re.compile(r"mw(\d+)_([A-Z])-([A-Z])\.jsonl(\.gz)?$")
 
 
 def describe(name):
+    generated = re.fullmatch(r"generated_([0-9a-f]{32})_([A-T])-([A-T])\.jsonl\.gz", name)
+    if generated:
+        code,home,away=generated.groups()
+        return {"file":name,"home":home,"away":away,"label":f"Generated · {home} v {away} · {code[:6]}"}
     m = NAME.search(name)
     if not m:
         return {"file": name, "label": name}

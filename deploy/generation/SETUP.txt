@@ -1,0 +1,45 @@
+TEAM PLAYER: WEBSITE MATCH GENERATION
+
+The website's Generate match link opens /generate. Judges choose teams (or random teams) and a seed. The app submits an Azure Storage Queue request. A separate Python 3.12 Azure Function runs the existing simulator; the web server never simulates. The ready page provides Watch. No reproduction files are created or offered for download. Watching uses the existing online analyser and Foundry agents, not saved analysis. No third-party hosted services or Docker are required.
+
+OWNER DEPLOYMENT (Mac/Linux Bash, from repository root)
+  source .venv/bin/activate
+  az login
+  bash deploy/azure/05_webapp.sh
+  bash deploy/azure/07_generation.sh
+
+05 deploys the viewer if it is not deployed yet. 07 deploys the worker and the updated website, then enables generation. It creates/uses a Linux Consumption Azure Function, a queue and a generation status container. Azure hosting, storage and AI calls incur charges on the owner's subscription. Role assignment creation requires the appropriate Azure permissions. No judge credentials are needed unless the owner configures website authentication.
+
+Settings are read from deploy/azure/config.env. Optional FUNCTION_APP_NAME overrides the default APP_NAME-gen. If Azure reports no capacity for the Consumption location, use an available LOCATION for the Function; do not switch Python versions without updating and retesting the reproduction contract. The CLI must support Python 3.12 on Azure Functions v4. Source ZIP deployment remotely installs pinned dependencies.
+
+The Function has a maximum execution time of ten minutes and retries failed queue messages up to three times. Generation is normally much faster than ten minutes, but no cloud latency guarantee is made. Exhausted retries are shown as failed so the judge can retry. Identical completed requests return the existing recording. Queue processing and Blob leases prevent simultaneous duplicate work.
+
+STORAGE
+  tracking/current/2026-27/generated_<id>_<home>-<away>.jsonl.gz : public position-only recordings
+  generation/jobs/<id>.json : request, status, reproduction settings, source hashes and output checksum
+  Azure Storage Queue team-player-generation : job IDs
+  Azure Storage Queue team-player-generation-poison : requests that exhausted retries
+
+The worker does not read/write analysis/history.db, history recordings or ground-truth. It does not store player profiles. The simulator's temporary private return value is discarded. Current-season analysis runs when viewing and is never added to history.
+
+LOCAL REPRODUCTION
+For a fresh local match using the same entry point:
+  python -m team_player.cloud.generate_match --seed 732 --home A --away B --output match.jsonl.gz
+This is equivalent to choosing A, B and seed 732 on the website for the same source version. Match duration is fixed at 600 seconds and sample rate at 10 Hz. The seed is passed to the existing season.simulate_fixture function; no special outcome is forced.
+
+VALIDATION BEFORE SHARING
+1. Open https://<APP_NAME>.azurewebsites.net/generate.
+2. Generate a match and wait for Ready; verify Watch opens exactly that match.
+3. Confirm its metadata season is 2026-27 and the existing history remains unchanged.
+4. Optionally run the same teams and seed locally with the same source and dependencies.
+5. Check that online analysis and real Foundry reports appear at qualifying moments.
+6. Repeat identical settings: the completed recording should be reused.
+
+Local tests use an in-memory Azure storage adapter and the real full-duration simulator. Cloud deployment, resource availability, permissions, queue activation and cross-platform checksum equality still need the above post-deployment check on your Azure subscription.
+
+SOURCE PACKAGES
+deploy/create_generation_bundle.py bundles only simulator/config/schema helpers and the generation worker.
+deploy/create_bundle.py bundles the viewer, analyser and agents, plus the public generation API/client. It does not bundle simulator code or private styles into the web app. Both packages carry the same simulator source fingerprint.
+
+REDEPLOYMENT
+Run 07_generation.sh after simulator changes so the website and Function have matching fingerprints. During deployment it disables new generation requests. Existing recordings remain watchable. Requests from an older source version are rejected rather than silently simulated with different code; resubmit from the updated page. Keep the exact repository revision used for a submitted demo so others can reproduce it.

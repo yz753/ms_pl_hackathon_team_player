@@ -1,1 +1,10 @@
-numpy>=1.26,<3
+numpy==2.5.4
+agent-framework-foundry==1.15.0
+agent-framework-core==1.22.0
+azure-identity==1.26.0
+azure-storage-blob==12.31.0
+fastapi==0.157.0
+uvicorn==0.54.0
+websockets==17.3
+httpx==0.28.1
+azure-storage-queue==12.18.0

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 import numpy as np
 from team_player.simulator.league import draw_teams,team_styles,public_roster
 from team_player.simulator.engine import SimulationConfig
@@ -76,12 +76,9 @@ class ConsultantTests(unittest.IsolatedAsyncioTestCase):
         from team_player.agents.foundry import FoundryDirector
         try:import agent_framework
         except ImportError:self.skipTest('Agent SDK unavailable')
-        class FakeAgent:
-            def __init__(self,**kwargs):self.tools=kwargs['tools']
-            async def run(self,*args):self.tools[0]();self.tools[1](['context'])
         sim=MatchSimulator(SimulationConfig(duration=.1));snap=compare(Accumulator(sim.metadata()).rows,'A09','B01',0)
         director=FoundryDirector.__new__(FoundryDirector);director.client=object()
-        with patch('agent_framework.Agent',FakeAgent):result=await director.compare(snap)
+        with patch('team_player.agents.plain.explain',AsyncMock(return_value={'text':'Insufficient evidence'})):result=await director.compare(snap)
         self.assertEqual(result['warnings'],snap['warnings'])
         self.assertEqual(result['method'],'microsoft_foundry_agent')
 
@@ -99,12 +96,13 @@ class ComparisonWebTests(unittest.TestCase):
                     with client.websocket_connect('/ws') as ws:
                         meta=ws.receive_json();self.assertEqual(meta['preferences']['player'],'H09')
                         ws.send_json({'type':'comparison','left':'H09','right':'T01','review':True})
-                        ticks=[]
+                        ticks=[];reviews=[]
                         while True:
                             msg=ws.receive_json()
                             if msg['kind']=='end':break
+                            if msg['kind']=='comparison':reviews.append(msg);continue
                             self.assertEqual(msg['kind'],'tick');ticks.append(msg)
                         last=ticks[-1];self.assertFalse(last['comparison']['compatible'])
                         self.assertEqual(last['comparison']['right']['id'],'T01')
                         self.assertLessEqual(last['comparison']['left']['observed_s'],.6)
-                        self.assertEqual(last['consultant']['method'],'local_rules')
+                        self.assertEqual(reviews[-1]['consultant']['method'],'unavailable')

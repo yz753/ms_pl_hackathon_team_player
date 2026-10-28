@@ -109,16 +109,24 @@ def analyse_task(blob_name):
 
 # ---------------------------------------------------------------- build store ---
 
-def build_store_remote(fit_models=False):
+def build_store_remote(fit_models=False, seasons=None):
     from team_player.analyser.history import build_store, fit_value_models
+    if seasons and CURRENT_SEASON in seasons:
+        raise ValueError('Current-season recordings must not enter the history store')
     svc = service();container = svc.get_container_client(ANALYSIS)
     with tempfile.TemporaryDirectory() as d:
         root = Path(d) / "matches";n = 0
         for blob in container.list_blobs(name_starts_with="matches/"):
+            if blob.name.split("/")[1] == CURRENT_SEASON:
+                continue  # Never pool current-season reference analyses into history.
+            if seasons and blob.name.split("/")[1] not in seasons:
+                continue
             path = Path(d) / blob.name;path.parent.mkdir(parents=True, exist_ok=True)
             with path.open("wb") as h:
                 container.download_blob(blob.name).readinto(h)
             n += 1
+        if seasons and not n:
+            raise ValueError('No analysed matches found for the selected season(s); existing history.db was not replaced')
         db, matches = build_store(root, Path(d) / "history.db")
         with open(db, "rb") as h:
             container.upload_blob("history.db", h, overwrite=True)
@@ -155,7 +163,7 @@ def main():
     s = sub.add_parser("simulate");s.add_argument("--seasons", default="history")
     s.add_argument("--limit", type=int, default=0, help="only the first N fixtures per season (trial runs)")
     a = sub.add_parser("analyse");a.add_argument("--seasons", default="history")
-    b = sub.add_parser("build-store");b.add_argument("--fit-models", action="store_true")
+    b = sub.add_parser("build-store");b.add_argument("--fit-models", action="store_true");b.add_argument("--seasons", help="Only include these historical seasons in history.db")
     argv = sys.argv[1:]
     if not argv:   # Container Apps Jobs: configure through environment variables (no CLI flags needed)
         argv = [os.environ.get("TEAM_PLAYER_TASK", "simulate")]
@@ -179,7 +187,7 @@ def main():
         tasks = [b.name for season in seasons for b in container.list_blobs(name_starts_with=f"history/{season}/")]
         run_pool(analyse_task, tasks)
     else:
-        build_store_remote(args.fit_models)
+        build_store_remote(args.fit_models, parse_seasons(args.seasons) if args.seasons else None)
 
 
 if __name__ == "__main__":

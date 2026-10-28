@@ -1,4 +1,4 @@
-numpy==2.1.2
+numpy==2.5.4
 agent-framework-core==1.22.0
 agent-framework-foundry==1.15.0
 agent-framework-openai==1.17.0
@@ -45,3 +45,4 @@ typing_extensions==4.16.0
 uvicorn==0.54.0
 websockets==17.3
 yarl==1.25.1
+azure-storage-queue==12.18.0

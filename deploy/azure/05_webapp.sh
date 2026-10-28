@@ -22,7 +22,7 @@ az webapp config appsettings set -g "$RESOURCE_GROUP" -n "$APP_NAME" -o none --s
   SCM_DO_BUILD_DURING_DEPLOYMENT=true TEAM_PLAYER_AI=foundry TEAM_PLAYER_IDENTITY=managed \
   FOUNDRY_PROJECT_ENDPOINT="$FOUNDRY_PROJECT_ENDPOINT" FOUNDRY_MODEL="$FOUNDRY_MODEL" \
   TEAM_PLAYER_BLOB_ACCOUNT_URL="$STORAGE_URL" TEAM_PLAYER_BLOB_CONTAINER=tracking \
-  TEAM_PLAYER_ANALYSIS_CONTAINER=analysis TEAM_PLAYER_CACHE=/home/team_player_cache
+  TEAM_PLAYER_ANALYSIS_CONTAINER=analysis TEAM_PLAYER_CACHE=/home/team_player_cache TEAM_PLAYER_SEASON=2026-27
 az webapp config set -g "$RESOURCE_GROUP" -n "$APP_NAME" -o none --web-sockets-enabled true --always-on true \
   --startup-file "python -m uvicorn team_player.app.server:app --host 0.0.0.0 --port 8000"
 az webapp deploy -g "$RESOURCE_GROUP" -n "$APP_NAME" --src-path deploy/team-player-app.zip --type zip
