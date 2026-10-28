@@ -10,17 +10,40 @@ The application turns synthetic player and ball positions into online football a
 
 ## Contents
 
-- [What runs where](#what-runs-where)
-- [1. Install and run locally](#1-install-and-run-locally)
-- [2. Create the Azure resources and Foundry deployment](#2-create-the-azure-resources-and-foundry-deployment)
-- [3. Run locally with Azure AI](#3-run-locally-with-azure-ai)
-- [4. Generate historical data and upload it automatically](#4-generate-historical-data-and-upload-it-automatically)
-- [5. Deploy the website and generation worker](#5-deploy-the-website-and-generation-worker)
-- [6. Generate and view additional current-season matches](#6-generate-and-view-additional-current-season-matches)
-- [7. Update the application or reanalyse history](#7-update-the-application-or-reanalyse-history)
-- [Data locations](#data-locations)
-- [Tests and troubleshooting](#tests-and-troubleshooting)
-- [Repository guide](#repository-guide)
+- [Team Player](#team-player)
+  - [Contents](#contents)
+  - [What runs where](#what-runs-where)
+  - [1. Install and run locally](#1-install-and-run-locally)
+    - [Prerequisites](#prerequisites)
+    - [Get the source and install dependencies](#get-the-source-and-install-dependencies)
+    - [Preview the interface without Azure](#preview-the-interface-without-azure)
+    - [Selected examples](#selected-examples)
+  - [2. Create the Azure resources and Foundry deployment](#2-create-the-azure-resources-and-foundry-deployment)
+    - [Install Azure CLI and sign in](#install-azure-cli-and-sign-in)
+    - [Create a Foundry project and deploy a model](#create-a-foundry-project-and-deploy-a-model)
+    - [Create the deployment configuration](#create-the-deployment-configuration)
+    - [Create storage and grant access](#create-storage-and-grant-access)
+  - [3. Run locally with Azure AI](#3-run-locally-with-azure-ai)
+  - [4. Generate historical data and upload it automatically](#4-generate-historical-data-and-upload-it-automatically)
+    - [Optional: keep the historical workflow entirely local](#optional-keep-the-historical-workflow-entirely-local)
+  - [5. Deploy the website and generation worker](#5-deploy-the-website-and-generation-worker)
+    - [Create the initial Container App](#create-the-initial-container-app)
+    - [Build and deploy the actual project](#build-and-deploy-the-actual-project)
+    - [Verify the complete deployment](#verify-the-complete-deployment)
+  - [6. Generate and view additional current-season matches](#6-generate-and-view-additional-current-season-matches)
+    - [Through the hosted website](#through-the-hosted-website)
+    - [On your own computer](#on-your-own-computer)
+    - [Optional: copy selected examples to Blob](#optional-copy-selected-examples-to-blob)
+  - [7. Update the application or reanalyse history](#7-update-the-application-or-reanalyse-history)
+    - [Application, wording or AI instruction changes](#application-wording-or-ai-instruction-changes)
+    - [Reanalyse historical recordings after changing the analyser](#reanalyse-historical-recordings-after-changing-the-analyser)
+    - [Refresh the viewer's cached historical database](#refresh-the-viewers-cached-historical-database)
+  - [Data locations](#data-locations)
+  - [Tests and troubleshooting](#tests-and-troubleshooting)
+  - [Repository guide](#repository-guide)
+    - [Which deployment scripts should I run?](#which-deployment-scripts-should-i-run)
+    - [Before publishing the repository](#before-publishing-the-repository)
+  - [Acknowledgement](#acknowledgement)
 
 ## What runs where
 
@@ -576,8 +599,5 @@ git ls-files deploy/azure/config.env deploy/demo.env
 
 If either file is listed, adding it to `.gitignore` does not remove it from version control. Remove it from tracking before publishing, while retaining your local copy. Publish the `.example` templates instead. Also make sure required new tests and source files are included, rather than accidentally excluded by broad ignore rules.
 
-### Scope and limitations
-
-This is a synthetic football demonstration, not an assessment of real players. Playing styles are probabilistic, so a seed does not guarantee a particular tactical outcome. Historical retrieval matches measured context, not every cause. Contribution estimates and narrative conclusions should be interpreted alongside their definitions and uncertainty.
-
-The hosted route needs internet access for Foundry, Blob and queue operations. The simulator and analyser can run without internet once dependencies and input files are available locally. The website's AI explanations require a working Foundry deployment.
+## Acknowledgement
+AI assistance: Developed by Yiming Zhao with assistance from OpenAI Codex and Claude for implementation, debugging, testing and documentation. Project direction and final decisions were made by the author.

@@ -41,3 +41,5 @@ Viewers can watch five selected examples or generate a new reproducible ten-minu
 The prototype focuses on strikers, fullbacks and wingers. Its estimates describe modelled contributions and observed associations, not proven causal effects. For fans, broadcasters and analysts, the aim is simple: **appreciate team players' contributions, beyond the usual positions, beyond goals and assists.**
 
 [Try the application](https://ms-pl-hackathon-team-player.redisland-fd1d12ca.northeurope.azurecontainerapps.io/), [Source code](https://github.com/yz753/ms_pl_hackathon_team_player)
+
+Some limitations: this is more about a demonstration of the feasibility of my idea instead of a 100% complete pipeline to analyse the stats I mentioned. For example, the simulator is a simple designed model which is not able to replicate elite footballer's performance.
