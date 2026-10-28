@@ -14,3 +14,22 @@ deploy/demo.env
 .venv/
 
 runs/curated_2026_27/
+
+# Local-only files excluded from the published project
+/deploy/app-service.sh
+/deploy/azure/02_jobs.sh
+/deploy/azure/03_run_history.sh
+/deploy/azure/04_current_season.sh
+/deploy/azure/05_webapp.sh
+/deploy/azure/06_check.sh
+/deploy/azure/07_generation.sh
+/deploy/worker
+/deploy/DEMO_SETUP.txt
+/deploy/generation/SETUP.txt
+/private
+/scripts/benchmark_azure.py
+/scripts/benchmark_narration.py
+/scripts/benchmark_stream.py
+/scripts/validate_individual_credit.py
+/deploy/azure/config.env
+.DS_Store
