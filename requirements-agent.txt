@@ -1,5 +1,0 @@
--r requirements-web.txt
-agent-framework-foundry==1.15.0
-agent-framework-core==1.22.0
-azure-identity==1.26.0
-azure-storage-blob==12.31.0
